@@ -107,7 +107,7 @@ function App() {
               >
                 @StockMeetUps
               </a>
-              , and Aarush
+              , and Aarush; contact for feedback
             </p>
             <p className="text-xs text-slate-400 mt-1">
               Financial modeling and research by{' '}
@@ -128,9 +128,6 @@ function App() {
               >
                 @thekookreport
               </a>
-            </p>
-            <p className="text-xs text-slate-400 mt-1">
-              Contact any of the first 2 handles on X.com for feedback
             </p>
             <p className="text-xs text-slate-400 mt-1">
               Model for educational purposes only. Not financial advice.
