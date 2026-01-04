@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useMemo } from 'react';
 
 interface ParameterSliderProps {
   id: string;
@@ -27,14 +27,9 @@ export function ParameterSlider({
   suffix = '',
   description,
 }: ParameterSliderProps) {
-  const sliderRef = useRef<HTMLInputElement>(null);
-
-  // Calculate and set the CSS custom property for slider progress
-  useEffect(() => {
-    if (sliderRef.current) {
-      const progress = ((value - min) / (max - min)) * 100;
-      sliderRef.current.style.setProperty('--range-progress', `${progress}%`);
-    }
+  // Calculate progress percentage for the gradient
+  const progress = useMemo(() => {
+    return ((value - min) / (max - min)) * 100;
   }, [value, min, max]);
 
   const displayValue = formatter ? formatter(value) : `${prefix}${value}${suffix}`;
@@ -54,7 +49,6 @@ export function ParameterSlider({
       </div>
 
       <input
-        ref={sliderRef}
         type="range"
         id={id}
         min={min}
@@ -62,7 +56,8 @@ export function ParameterSlider({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+        className="slider-progress w-full h-2 rounded-lg appearance-none cursor-pointer"
+        style={{ '--range-progress': `${progress}%` } as React.CSSProperties}
       />
 
       <div className="flex justify-between mt-1">

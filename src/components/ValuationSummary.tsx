@@ -1,5 +1,6 @@
 import { ValuationResult, FinancialParams, ModelType } from '../types';
-import { formatCurrency, VALUATION_REGIMES, DOCUMENT_BENCHMARKS } from '../constants/defaults';
+import { formatCurrencyMillions, VALUATION_REGIMES } from '../constants/defaults';
+import { EvEbitdaScheduleEditor } from './ScheduleEditor';
 
 interface ValuationSummaryProps {
   throughputResult: ValuationResult;
@@ -7,7 +8,9 @@ interface ValuationSummaryProps {
   activeResult: ValuationResult;
   activeModel: ModelType;
   financial: FinancialParams;
+  evEbitdaSchedule: Record<number, number>;
   onFinancialChange: <K extends keyof FinancialParams>(key: K, value: FinancialParams[K]) => void;
+  onEvEbitdaScheduleChange: (year: number, multiple: number) => void;
   onReset: () => void;
 }
 
@@ -17,7 +20,9 @@ export function ValuationSummary({
   activeResult,
   activeModel,
   financial,
+  evEbitdaSchedule,
   onFinancialChange,
+  onEvEbitdaScheduleChange,
   onReset,
 }: ValuationSummaryProps) {
   // Determine valuation regime
@@ -57,7 +62,7 @@ export function ValuationSummary({
 
       {/* Main Stock Price Display */}
       <div className="text-center mb-8">
-        <div className="text-sm text-slate-400 mb-1">Implied Stock Price</div>
+        <div className="text-sm text-slate-400 mb-1">2030 Implied Stock Price</div>
         <div className="text-6xl font-display font-bold bg-gradient-to-r from-primary-300 via-primary-400 to-accent-400 bg-clip-text text-transparent">
           ${activeResult.stockPrice.toFixed(2)}
         </div>
@@ -101,7 +106,7 @@ export function ValuationSummary({
           </div>
           <div className="text-2xl font-bold text-white">${throughputResult.stockPrice.toFixed(2)}</div>
           <div className="text-xs text-slate-400 mt-1">
-            Revenue: {formatCurrency(throughputResult.netRevenue, 1)}
+            Revenue: {formatCurrencyMillions(throughputResult.netRevenue, 1)}
           </div>
         </div>
 
@@ -112,7 +117,7 @@ export function ValuationSummary({
           </div>
           <div className="text-2xl font-bold text-white">${userBasedResult.stockPrice.toFixed(2)}</div>
           <div className="text-xs text-slate-400 mt-1">
-            Revenue: {formatCurrency(userBasedResult.netRevenue, 1)}
+            Revenue: {formatCurrencyMillions(userBasedResult.netRevenue, 1)}
           </div>
         </div>
       </div>
@@ -121,25 +126,66 @@ export function ValuationSummary({
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-slate-700/50 rounded-lg p-3">
           <div className="text-xs text-slate-400">Net Revenue</div>
-          <div className="text-lg font-bold">{formatCurrency(activeResult.netRevenue, 1)}</div>
+          <div className="text-lg font-bold">{formatCurrencyMillions(activeResult.netRevenue, 1)}</div>
         </div>
         <div className="bg-slate-700/50 rounded-lg p-3">
           <div className="text-xs text-slate-400">EBITDA</div>
-          <div className="text-lg font-bold">{formatCurrency(activeResult.ebitda, 1)}</div>
+          <div className="text-lg font-bold">{formatCurrencyMillions(activeResult.ebitda, 1)}</div>
         </div>
         <div className="bg-slate-700/50 rounded-lg p-3">
           <div className="text-xs text-slate-400">Enterprise Value</div>
-          <div className="text-lg font-bold">{formatCurrency(activeResult.enterpriseValue, 1)}</div>
+          <div className="text-lg font-bold">{formatCurrencyMillions(activeResult.enterpriseValue, 1)}</div>
         </div>
       </div>
 
       {/* Common Financial Parameters */}
       <div className="bg-slate-700/30 rounded-xl p-4">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">
-          Common Parameters
+          Financial Parameters
         </h3>
 
         <div className="space-y-4">
+          {/* EBITDA Margin */}
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-slate-400">EBITDA Margin</span>
+              <span className="font-mono text-white">{(financial.ebitdaMargin * 100).toFixed(0)}%</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={95}
+              step={5}
+              value={financial.ebitdaMargin * 100}
+              onChange={(e) => onFinancialChange('ebitdaMargin', parseFloat(e.target.value) / 100)}
+              className="w-full slider-progress"
+              style={{ '--range-progress': `${(financial.ebitdaMargin / 0.95) * 100}%` } as React.CSSProperties}
+            />
+          </div>
+
+          {/* EV/EBITDA Multiple */}
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-slate-400">EV/EBITDA Multiple (2030)</span>
+              <span className="font-mono text-white">{evEbitdaSchedule[2030]}x</span>
+            </div>
+            <input
+              type="range"
+              min={5}
+              max={50}
+              step={1}
+              value={evEbitdaSchedule[2030]}
+              onChange={(e) => {
+                const value = parseFloat(e.target.value);
+                onFinancialChange('evEbitdaMultiple', value);
+                onEvEbitdaScheduleChange(2030, value);
+              }}
+              className="w-full slider-progress"
+              style={{ '--range-progress': `${((evEbitdaSchedule[2030] - 5) / 45) * 100}%` } as React.CSSProperties}
+            />
+          </div>
+
+          {/* Shares Outstanding */}
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-400">Shares Outstanding (FD)</span>
@@ -147,49 +193,45 @@ export function ValuationSummary({
             </div>
             <input
               type="range"
-              min={350}
-              max={500}
-              step={1}
+              min={400}
+              max={1000}
+              step={10}
               value={financial.sharesOutstanding}
               onChange={(e) => onFinancialChange('sharesOutstanding', parseFloat(e.target.value))}
-              className="w-full"
+              className="w-full slider-progress"
+              style={{ '--range-progress': `${((financial.sharesOutstanding - 400) / 600) * 100}%` } as React.CSSProperties}
             />
           </div>
 
+          {/* Net Debt */}
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-400">Net Debt</span>
-              <span className="font-mono text-white">${financial.netDebt}M</span>
+              <span className="font-mono text-white">
+                {financial.netDebt >= 1000
+                  ? `$${(financial.netDebt / 1000).toFixed(1)}B`
+                  : `$${financial.netDebt}M`}
+              </span>
             </div>
             <input
               type="range"
-              min={-500}
-              max={500}
-              step={10}
+              min={0}
+              max={5000}
+              step={100}
               value={financial.netDebt}
               onChange={(e) => onFinancialChange('netDebt', parseFloat(e.target.value))}
-              className="w-full"
+              className="w-full slider-progress"
+              style={{ '--range-progress': `${(financial.netDebt / 5000) * 100}%` } as React.CSSProperties}
             />
           </div>
         </div>
-      </div>
 
-      {/* Benchmark Comparison */}
-      <div className="mt-6 pt-4 border-t border-slate-700">
-        <div className="text-xs text-slate-500 mb-2">Code Red Price Targets</div>
-        <div className="flex gap-2">
-          {Object.entries(DOCUMENT_BENCHMARKS.priceTargets).map(([key, value]) => (
-            <div
-              key={key}
-              className={`px-2 py-1 rounded text-xs ${
-                Math.abs(activeResult.stockPrice - value) < 10
-                  ? 'bg-accent-500/20 text-accent-300 border border-accent-500/30'
-                  : 'bg-slate-700/50 text-slate-400'
-              }`}
-            >
-              ${value}
-            </div>
-          ))}
+        {/* EV/EBITDA Schedule */}
+        <div className="mt-4">
+          <EvEbitdaScheduleEditor
+            schedule={evEbitdaSchedule}
+            onChange={onEvEbitdaScheduleChange}
+          />
         </div>
       </div>
     </div>
@@ -215,7 +257,7 @@ export function CompactValuationSummary({
       </div>
       <div className="text-right">
         <div className="text-xs text-slate-400">EBITDA</div>
-        <div className="text-lg font-semibold">{formatCurrency(activeResult.ebitda, 1)}</div>
+        <div className="text-lg font-semibold">{formatCurrencyMillions(activeResult.ebitda, 1)}</div>
       </div>
     </div>
   );

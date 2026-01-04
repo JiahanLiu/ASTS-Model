@@ -10,6 +10,7 @@ import {
   DEFAULT_PARAMS,
   CONSTELLATION_SCHEDULE,
   ATTACHMENT_RATE_SCHEDULE,
+  EV_EBITDA_SCHEDULE,
 } from '../types';
 
 // Calculate valuation using Throughput-Yield Model
@@ -88,26 +89,36 @@ function calculateUserBasedModel(
 
 // Generate yearly projections
 function generateYearlyProjections(
-  params: ModelParams
+  params: ModelParams,
+  constellationSchedule: Record<number, number>,
+  attachmentSchedule: Record<number, number>,
+  evEbitdaSchedule: Record<number, number>
 ): RevenueChartData[] {
-  const years = [2025, 2026, 2027, 2028, 2029, 2030];
+  const years = [2026, 2027, 2028, 2029, 2030];
 
   return years.map(year => {
+    // Get year-specific EV/EBITDA multiple
+    const evEbitdaMultiple = evEbitdaSchedule[year] || params.financial.evEbitdaMultiple;
+    const yearFinancial: FinancialParams = {
+      ...params.financial,
+      evEbitdaMultiple,
+    };
+
     // Throughput model with constellation schedule
-    const satellites = CONSTELLATION_SCHEDULE[year] || params.throughput.satellites;
+    const satellites = constellationSchedule[year] || params.throughput.satellites;
     const throughputParams: ThroughputModelParams = {
       ...params.throughput,
       satellites,
     };
-    const throughputResult = calculateThroughputModel(throughputParams, params.financial);
+    const throughputResult = calculateThroughputModel(throughputParams, yearFinancial);
 
     // User-based model with attachment rate schedule
-    const attachmentRate = ATTACHMENT_RATE_SCHEDULE[year] || params.userBased.attachmentRate;
+    const attachmentRate = attachmentSchedule[year] || params.userBased.attachmentRate;
     const userBasedParams: UserBasedModelParams = {
       ...params.userBased,
       attachmentRate,
     };
-    const userBasedResult = calculateUserBasedModel(userBasedParams, params.financial);
+    const userBasedResult = calculateUserBasedModel(userBasedParams, yearFinancial);
 
     return {
       year: year.toString(),
@@ -115,6 +126,8 @@ function generateYearlyProjections(
       userBasedRevenue: userBasedResult.netRevenue,
       throughputPrice: throughputResult.stockPrice,
       userBasedPrice: userBasedResult.stockPrice,
+      averageRevenue: (throughputResult.netRevenue + userBasedResult.netRevenue) / 2,
+      averagePrice: (throughputResult.stockPrice + userBasedResult.stockPrice) / 2,
     };
   });
 }
@@ -122,6 +135,15 @@ function generateYearlyProjections(
 // Custom hook for valuation model
 export function useValuationModel() {
   const [params, setParams] = useState<ModelParams>(DEFAULT_PARAMS);
+  const [constellationSchedule, setConstellationSchedule] = useState<Record<number, number>>(
+    { ...CONSTELLATION_SCHEDULE }
+  );
+  const [attachmentSchedule, setAttachmentSchedule] = useState<Record<number, number>>(
+    { ...ATTACHMENT_RATE_SCHEDULE }
+  );
+  const [evEbitdaSchedule, setEvEbitdaSchedule] = useState<Record<number, number>>(
+    { ...EV_EBITDA_SCHEDULE }
+  );
 
   // Calculate results for both models
   const throughputResult = useMemo(
@@ -157,8 +179,8 @@ export function useValuationModel() {
 
   // Generate yearly projections
   const yearlyProjections = useMemo(
-    () => generateYearlyProjections(params),
-    [params]
+    () => generateYearlyProjections(params, constellationSchedule, attachmentSchedule, evEbitdaSchedule),
+    [params, constellationSchedule, attachmentSchedule, evEbitdaSchedule]
   );
 
   // Update functions
@@ -210,6 +232,40 @@ export function useValuationModel() {
 
   const resetToDefaults = useCallback(() => {
     setParams(DEFAULT_PARAMS);
+    setConstellationSchedule({ ...CONSTELLATION_SCHEDULE });
+    setAttachmentSchedule({ ...ATTACHMENT_RATE_SCHEDULE });
+    setEvEbitdaSchedule({ ...EV_EBITDA_SCHEDULE });
+  }, []);
+
+  const updateConstellationSchedule = useCallback((year: number, satellites: number) => {
+    setConstellationSchedule(prev => ({
+      ...prev,
+      [year]: satellites,
+    }));
+  }, []);
+
+  const updateAttachmentSchedule = useCallback((year: number, rate: number) => {
+    setAttachmentSchedule(prev => ({
+      ...prev,
+      [year]: rate,
+    }));
+  }, []);
+
+  const updateEvEbitdaSchedule = useCallback((year: number, multiple: number) => {
+    setEvEbitdaSchedule(prev => ({
+      ...prev,
+      [year]: multiple,
+    }));
+    // Sync 2030 value with financial.evEbitdaMultiple
+    if (year === 2030) {
+      setParams(prev => ({
+        ...prev,
+        financial: {
+          ...prev.financial,
+          evEbitdaMultiple: multiple,
+        },
+      }));
+    }
   }, []);
 
   return {
@@ -218,9 +274,15 @@ export function useValuationModel() {
     userBasedResult,
     activeResult,
     yearlyProjections,
+    constellationSchedule,
+    attachmentSchedule,
+    evEbitdaSchedule,
     updateThroughputParam,
     updateUserBasedParam,
     updateFinancialParam,
+    updateConstellationSchedule,
+    updateAttachmentSchedule,
+    updateEvEbitdaSchedule,
     setActiveModel,
     resetToDefaults,
   };

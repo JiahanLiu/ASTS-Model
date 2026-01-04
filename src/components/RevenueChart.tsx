@@ -12,7 +12,7 @@ import {
   Bar,
 } from 'recharts';
 import { RevenueChartData, ModelType } from '../types';
-import { formatCurrency } from '../constants/defaults';
+import { formatCurrencyMillions } from '../constants/defaults';
 
 interface RevenueChartProps {
   data: RevenueChartData[];
@@ -22,6 +22,7 @@ interface RevenueChartProps {
 export function RevenueChart({ data, activeModel }: RevenueChartProps) {
   const showThroughput = activeModel === 'throughput' || activeModel === 'both';
   const showUserBased = activeModel === 'user-based' || activeModel === 'both';
+  const showAverage = activeModel === 'both';
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -44,6 +45,10 @@ export function RevenueChart({ data, activeModel }: RevenueChartProps) {
                 <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
                 <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
               </linearGradient>
+              <linearGradient id="averageGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+              </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis
@@ -54,7 +59,7 @@ export function RevenueChart({ data, activeModel }: RevenueChartProps) {
             <YAxis
               tick={{ fill: '#64748b', fontSize: 12 }}
               axisLine={{ stroke: '#cbd5e1' }}
-              tickFormatter={(value) => formatCurrency(value, 0)}
+              tickFormatter={(value) => formatCurrencyMillions(value, 0)}
             />
             <Tooltip
               contentStyle={{
@@ -63,7 +68,7 @@ export function RevenueChart({ data, activeModel }: RevenueChartProps) {
                 borderRadius: '12px',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               }}
-              formatter={(value: number) => [formatCurrency(value, 1), '']}
+              formatter={(value: number) => [formatCurrencyMillions(value, 1), '']}
               labelStyle={{ color: '#1e293b', fontWeight: 600 }}
             />
             <Legend
@@ -90,6 +95,17 @@ export function RevenueChart({ data, activeModel }: RevenueChartProps) {
                 fill="url(#userBasedGradient)"
               />
             )}
+            {showAverage && (
+              <Area
+                type="monotone"
+                dataKey="averageRevenue"
+                name="Average"
+                stroke="#8b5cf6"
+                strokeWidth={3}
+                strokeDasharray="5 5"
+                fill="url(#averageGradient)"
+              />
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -106,6 +122,7 @@ interface StockPriceChartProps {
 export function StockPriceChart({ data, activeModel }: StockPriceChartProps) {
   const showThroughput = activeModel === 'throughput' || activeModel === 'both';
   const showUserBased = activeModel === 'user-based' || activeModel === 'both';
+  const showAverage = activeModel === 'both';
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -164,6 +181,18 @@ export function StockPriceChart({ data, activeModel }: StockPriceChartProps) {
                 strokeWidth={3}
                 dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: '#15803d' }}
+              />
+            )}
+            {showAverage && (
+              <Line
+                type="monotone"
+                dataKey="averagePrice"
+                name="Average"
+                stroke="#8b5cf6"
+                strokeWidth={3}
+                strokeDasharray="5 5"
+                dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#6d28d9' }}
               />
             )}
           </ComposedChart>

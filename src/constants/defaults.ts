@@ -6,6 +6,9 @@ export {
 } from '../types';
 
 // Formatting utilities
+// Note: Most financial values in this model are stored in MILLIONS
+// Use formatCurrencyMillions for those values
+
 export const formatCurrency = (value: number, decimals = 0): string => {
   if (Math.abs(value) >= 1e9) {
     return `$${(value / 1e9).toFixed(decimals)}B`;
@@ -17,6 +20,20 @@ export const formatCurrency = (value: number, decimals = 0): string => {
     return `$${(value / 1e3).toFixed(decimals)}K`;
   }
   return `$${value.toFixed(decimals)}`;
+};
+
+// Format values that are already in millions (e.g., 2000 = $2,000M = $2B)
+export const formatCurrencyMillions = (valueInMillions: number, decimals = 1): string => {
+  if (Math.abs(valueInMillions) >= 1000) {
+    return `$${(valueInMillions / 1000).toFixed(decimals)}B`;
+  }
+  if (Math.abs(valueInMillions) >= 1) {
+    return `$${valueInMillions.toFixed(decimals)}M`;
+  }
+  if (Math.abs(valueInMillions) >= 0.001) {
+    return `$${(valueInMillions * 1000).toFixed(0)}K`;
+  }
+  return `$${(valueInMillions * 1e6).toFixed(decimals)}`;
 };
 
 export const formatNumber = (value: number, decimals = 0): string => {

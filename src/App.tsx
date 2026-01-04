@@ -5,7 +5,6 @@ import {
   UserBasedModel,
   RevenueChart,
   StockPriceChart,
-  ModelComparisonChart,
   ValuationSummary,
 } from './components';
 
@@ -16,9 +15,15 @@ function App() {
     userBasedResult,
     activeResult,
     yearlyProjections,
+    constellationSchedule,
+    attachmentSchedule,
+    evEbitdaSchedule,
     updateThroughputParam,
     updateUserBasedParam,
     updateFinancialParam,
+    updateConstellationSchedule,
+    updateAttachmentSchedule,
+    updateEvEbitdaSchedule,
     setActiveModel,
     resetToDefaults,
   } = useValuationModel();
@@ -62,108 +67,122 @@ function App() {
           <div>
             <h3 className="font-semibold text-slate-800 mb-1">Interactive Valuation Model</h3>
             <p className="text-sm text-slate-600">
-              This model uses two complementary approaches from the Code Red research: <strong>Throughput-Yield</strong> (satellites × capacity × price)
+              This app is based on{' '}
+              <a
+                href="https://www.kookreport.com/post/ast-spacemobile-asts-the-mobile-satellite-cellular-network-monopoly-please-find-my-final-comp"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-600 hover:text-primary-700 underline font-medium"
+              >
+                TheKOOKReport
+              </a>{' '}
+              models: <strong>Throughput-Yield</strong> (satellites × capacity × price)
               and <strong>User-Based</strong> (subscribers × attach rate × ARPU). Adjust the sliders to explore different scenarios.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Model Inputs */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Model Parameter Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ThroughputModel
-                params={params.throughput}
-                financial={params.financial}
-                result={throughputResult}
-                onParamChange={updateThroughputParam}
-                onFinancialChange={updateFinancialParam}
-              />
+        {/* Stacked Layout - Each panel takes full width */}
+        <div className="space-y-6 mb-6">
+          {/* Valuation Summary - Full Width */}
+          <ValuationSummary
+            throughputResult={throughputResult}
+            userBasedResult={userBasedResult}
+            activeResult={activeResult}
+            activeModel={params.activeModel}
+            financial={params.financial}
+            evEbitdaSchedule={evEbitdaSchedule}
+            onFinancialChange={updateFinancialParam}
+            onEvEbitdaScheduleChange={updateEvEbitdaSchedule}
+            onReset={resetToDefaults}
+          />
 
-              <UserBasedModel
-                params={params.userBased}
-                financial={params.financial}
-                result={userBasedResult}
-                onParamChange={updateUserBasedParam}
-                onFinancialChange={updateFinancialParam}
-              />
-            </div>
+          {/* Throughput-Yield Model - Full Width */}
+          <ThroughputModel
+            params={params.throughput}
+            financial={params.financial}
+            result={throughputResult}
+            constellationSchedule={constellationSchedule}
+            onParamChange={updateThroughputParam}
+            onScheduleChange={updateConstellationSchedule}
+          />
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 gap-6">
-              <RevenueChart data={yearlyProjections} activeModel={params.activeModel} />
-              <StockPriceChart data={yearlyProjections} activeModel={params.activeModel} />
-            </div>
+          {/* User-Based Model - Full Width */}
+          <UserBasedModel
+            params={params.userBased}
+            financial={params.financial}
+            result={userBasedResult}
+            attachmentSchedule={attachmentSchedule}
+            onParamChange={updateUserBasedParam}
+            onScheduleChange={updateAttachmentSchedule}
+          />
+        </div>
 
-            {/* Model Comparison */}
-            {params.activeModel === 'both' && (
-              <ModelComparisonChart
-                throughputResult={throughputResult}
-                userBasedResult={userBasedResult}
-              />
-            )}
-          </div>
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <RevenueChart data={yearlyProjections} activeModel={params.activeModel} />
+          <StockPriceChart data={yearlyProjections} activeModel={params.activeModel} />
+        </div>
 
-          {/* Right Column - Valuation Summary */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <ValuationSummary
-                throughputResult={throughputResult}
-                userBasedResult={userBasedResult}
-                activeResult={activeResult}
-                activeModel={params.activeModel}
-                financial={params.financial}
-                onFinancialChange={updateFinancialParam}
-                onReset={resetToDefaults}
-              />
-
-              {/* Key Assumptions Card */}
-              <div className="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <h3 className="font-display font-semibold text-slate-800 mb-4">Key Assumptions</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs">1</span>
-                    </div>
-                    <p className="text-slate-600">
-                      <strong className="text-slate-800">50/50 Revenue Share</strong> with MNO partners (AT&T, Verizon, Vodafone, etc.)
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs">2</span>
-                    </div>
-                    <p className="text-slate-600">
-                      <strong className="text-slate-800">85% EBITDA Margin</strong> due to net revenue accounting and low CAC
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs">3</span>
-                    </div>
-                    <p className="text-slate-600">
-                      <strong className="text-slate-800">3B Addressable Users</strong> through existing MNO partnerships
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs">4</span>
-                    </div>
-                    <p className="text-slate-600">
-                      <strong className="text-slate-800">~100 Satellites</strong> for initial continuous coverage constellation
-                    </p>
-                  </div>
-                </div>
+        {/* Key Assumptions */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+          <h3 className="font-display font-semibold text-slate-800 mb-4">Key Assumptions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs">1</span>
               </div>
-
-              {/* Data Source Attribution */}
-              <div className="mt-6 text-center text-xs text-slate-400">
-                <p>Based on research from Code Red 1 - AST SpaceMobile</p>
-                <p className="mt-1">Model for educational purposes only. Not financial advice.</p>
+              <p className="text-slate-600">
+                <strong className="text-slate-800">50/50 Revenue Share</strong> with MNO partners
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs">2</span>
               </div>
+              <p className="text-slate-600">
+                <strong className="text-slate-800">85% EBITDA Margin</strong> due to low CAC
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs">3</span>
+              </div>
+              <p className="text-slate-600">
+                <strong className="text-slate-800">3B Addressable Users</strong> via MNO partnerships
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs">4</span>
+              </div>
+              <p className="text-slate-600">
+                <strong className="text-slate-800">200 Satellites</strong> by 2030 full constellation
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs">5</span>
+              </div>
+              <p className="text-slate-600">
+                <strong className="text-slate-800">~$2B Net Debt</strong> for constellation financing
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs">6</span>
+              </div>
+              <p className="text-slate-600">
+                <strong className="text-slate-800">~600M Shares</strong> diluted for capital raises
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* Data Source Attribution */}
+        <div className="text-center text-xs text-slate-400 mb-6">
+          <p>Based on research from Code Red 1 - AST SpaceMobile</p>
+          <p className="mt-1">Model for educational purposes only. Not financial advice.</p>
         </div>
       </main>
 
