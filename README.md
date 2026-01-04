@@ -1,25 +1,29 @@
 # ASTS Stock Price Valuation Model
 
-An interactive React web application that models AST SpaceMobile (ASTS) stock price using two complementary valuation methodologies from the Code Red research document.
+An interactive React web application that models AST SpaceMobile (ASTS) stock price using two complementary valuation methodologies.
+
+**Live Demo:** https://jiahanliu.github.io/ASTS-Model/
 
 ## Features
 
 - **Dual Valuation Models**:
-  - **Throughput-Yield Model**: Revenue = Satellites × GB Capacity × Price/GB
-  - **User-Based Model**: Revenue = Subscribers × Attachment Rate × ARPU
+  - **Throughput-Yield Model**: Revenue = Satellites × GB Capacity × Utilization × Price/GB
+  - **User-Based Model**: Revenue = Subscribers × Attachment Rate × ARPU × Revenue Share
 
 - **Interactive Parameter Controls**: Adjust all key variables with real-time updates
-- **Revenue Projections**: Visualize growth from 2025-2030
-- **Stock Price Trajectory**: See implied share price evolution
-- **Model Comparison**: Side-by-side analysis of both approaches
+- **Yearly Schedules**: Customizable satellite deployment, attachment rate, and EV/EBITDA multiple schedules (2026-2030)
+- **Revenue Projections**: Visualize growth trajectory with model comparison
+- **Stock Price Trajectory**: See implied share price evolution with average calculation
+- **Transparent Math**: Collapsible breakdowns showing step-by-step calculations
 
-## Key Assumptions (from Code Red Document)
+## Key Assumptions
 
-- **50/50 Revenue Share** with MNO partners (AT&T, Verizon, Vodafone)
+- **50/50 Revenue Share** with MNO partners (AT&T, Verizon, Vodafone, etc.)
 - **85% EBITDA Margin** due to net revenue accounting and low customer acquisition costs
 - **3 Billion Addressable Users** through existing MNO partnerships
-- **~100 Satellites** for initial continuous coverage constellation
-- **$2/GB** baseline wholesale pricing
+- **200 Satellites** by 2030 for full constellation
+- **~$2B Net Debt** for constellation financing
+- **~650M Shares** fully diluted for capital raises
 
 ## Quick Start
 
@@ -46,34 +50,70 @@ npm run build
 ### Throughput-Yield Model
 | Parameter | Range | Default |
 |-----------|-------|---------|
-| Number of Satellites | 10-200 | 100 |
-| Gross GB per Satellite/Year | 50-150M | 100M |
-| Utilization Rate | 10-50% | 20% |
-| Price per GB | $1-10 | $2 |
+| Number of Satellites | 10-300 | 200 |
+| Gross GB per Satellite/Year | 50-200M | 150M |
+| Utilization Rate | 1-99% | 15% |
+| Price per GB | $0.10-100 | $5 |
 
 ### User-Based Model
 | Parameter | Range | Default |
 |-----------|-------|---------|
 | Total Subscribers | 500M-5B | 3B |
-| Attachment Rate | 5-50% | 25% |
-| Monthly ARPU | $5-25 | $10 |
-| Revenue Share | 40-60% | 50% |
+| Attachment Rate | 0.1-50% | 10% |
+| Monthly ARPU | $1-50 | $8 |
+| Revenue Share | 30-70% | 50% |
 
 ### Financial Parameters
 | Parameter | Range | Default |
 |-----------|-------|---------|
-| EBITDA Margin | 70-95% | 85% |
-| EV/EBITDA Multiple | 10-50x | 25x |
-| Shares Outstanding (FD) | 350-500M | 402M |
+| EBITDA Margin | 0-95% | 85% |
+| EV/EBITDA Multiple | 5-50x | 15x (2030) |
+| Shares Outstanding (FD) | 400-1000M | 650M |
+| Net Debt | $0-5B | $2B |
 
-## Price Target Reference (Code Red)
+### Yearly Schedules
 
-| Scenario | Target Price |
-|----------|-------------|
-| NAV Floor | $50 |
-| 2026 Coverage | $73 |
-| 2027 Full Constellation | $257 |
-| Multi-Shell Upside | $250-1000 |
+**Satellite Deployment:**
+| 2026 | 2027 | 2028 | 2029 | 2030 |
+|------|------|------|------|------|
+| 45 | 90 | 135 | 170 | 200 |
+
+**Attachment Rate:**
+| 2026 | 2027 | 2028 | 2029 | 2030 |
+|------|------|------|------|------|
+| 2% | 4% | 6% | 8% | 10% |
+
+**EV/EBITDA Multiple:**
+| 2026 | 2027 | 2028 | 2029 | 2030 |
+|------|------|------|------|------|
+| 25x | 22x | 19x | 16x | 15x |
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── MathBreakdown.tsx    # Transparent calculation displays
+│   ├── ModelToggle.tsx      # Model selection toggle
+│   ├── ParameterSlider.tsx  # Reusable slider components
+│   ├── RevenueChart.tsx     # Revenue and stock price charts
+│   ├── ScheduleEditor.tsx   # Yearly schedule editors
+│   ├── ThroughputModel.tsx  # Throughput model panel
+│   ├── UserBasedModel.tsx   # User-based model panel
+│   └── ValuationSummary.tsx # Main valuation display
+├── hooks/
+│   └── useValuationModel.ts # Core calculation logic and state
+├── types/
+│   └── index.ts             # TypeScript interfaces and defaults
+├── constants/
+│   └── defaults.ts          # Formatting utilities and constants
+├── App.tsx                  # Main application component
+└── main.tsx                 # React entry point
+```
+
+## References
+
+- [TheKOOKReport - AST SpaceMobile Analysis](https://www.kookreport.com/post/ast-spacemobile-asts-the-mobile-satellite-cellular-network-monopoly-please-find-my-final-comp)
 
 ## Disclaimer
 
@@ -81,4 +121,4 @@ This model is for educational and informational purposes only. It is not financi
 
 ---
 
-*Based on research from Code Red 1 - AST SpaceMobile*
+*Built with React + Recharts + TailwindCSS*
