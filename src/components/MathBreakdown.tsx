@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ThroughputModelParams, UserBasedModelParams, FinancialParams, ValuationResult } from '../types';
+import { ThroughputModelParams, UserBasedModelParams, FinancialParams, ValuationResult, getFullyDilutedShares } from '../types';
 import { formatCurrencyMillions, formatNumber, formatPercent } from '../constants/defaults';
 
 interface CollapsibleSectionProps {
@@ -117,7 +117,8 @@ export function ThroughputMathBreakdown({ params, financial, result: _result }: 
   const ebitda = netRevenue * financial.ebitdaMargin;
   const ev = ebitda * financial.evEbitdaMultiple;
   const equityValue = ev - financial.netDebt;
-  const stockPrice = equityValue / financial.sharesOutstanding;
+  const fullyDilutedShares = getFullyDilutedShares(financial);
+  const stockPrice = equityValue / fullyDilutedShares;
 
   return (
     <CollapsibleSection
@@ -185,8 +186,8 @@ export function ThroughputMathBreakdown({ params, financial, result: _result }: 
         <MathStep
           step={8}
           label="Stock Price"
-          formula="Equity_Value ÷ Shares_Outstanding"
-          calculation={`${formatCurrencyMillions(equityValue, 1)} ÷ ${financial.sharesOutstanding}M`}
+          formula="Equity_Value ÷ Fully_Diluted_Shares"
+          calculation={`${formatCurrencyMillions(equityValue, 1)} ÷ ${fullyDilutedShares.toFixed(0)}M (${financial.currentShares}M × ${(1 + financial.expectedDilution).toFixed(2)})`}
           result={`$${stockPrice.toFixed(2)}`}
           highlight
         />
@@ -196,7 +197,7 @@ export function ThroughputMathBreakdown({ params, financial, result: _result }: 
       <div className="mt-4 p-3 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg border border-primary-100">
         <div className="text-xs font-semibold text-primary-600 uppercase tracking-wider mb-2">Complete Formula</div>
         <div className="font-mono text-xs text-slate-700 leading-relaxed">
-          Stock Price = ((Satellites × GB × Utilization × Price/GB × 50%) × EBITDA% × Multiple − Debt) ÷ Shares
+          Stock Price = ((Satellites × GB × Utilization × Price/GB × 50%) × EBITDA% × Multiple − Debt) ÷ (Current_Shares × (1 + Dilution%))
         </div>
       </div>
     </CollapsibleSection>
@@ -213,14 +214,30 @@ interface UserBasedMathProps {
 export function UserBasedMathBreakdown({ params, financial, result: _result }: UserBasedMathProps) {
   // Note: We recalculate all values locally to show transparent math step by step
   void _result; // Result passed for interface consistency, but we show calculations
+
+  // Main MNO revenue calculations
   const activeSubscribers = params.totalSubscribers * params.attachmentRate;
   const annualRevenuePerSub = params.monthlyARPU * 12;
-  const grossRevenue = activeSubscribers * annualRevenuePerSub;
-  const netRevenue = grossRevenue * params.revenueShare;
+  const mainGrossRevenue = activeSubscribers * annualRevenuePerSub;
+  const mainNetRevenue = mainGrossRevenue * params.revenueShare;
+
+  // FirstNet revenue calculations
+  const firstNetGrossRevenue = params.firstNetEnabled
+    ? params.firstNetSubscribers * params.firstNetARPU * 12
+    : 0;
+  const firstNetNetRevenue = firstNetGrossRevenue * (params.firstNetRevenueShare || 0.5);
+
+  // Combined totals
+  const grossRevenue = mainGrossRevenue + firstNetGrossRevenue;
+  const netRevenue = mainNetRevenue + firstNetNetRevenue;
   const ebitda = netRevenue * financial.ebitdaMargin;
   const ev = ebitda * financial.evEbitdaMultiple;
   const equityValue = ev - financial.netDebt;
-  const stockPrice = equityValue / financial.sharesOutstanding;
+  const fullyDilutedShares = getFullyDilutedShares(financial);
+  const stockPrice = equityValue / fullyDilutedShares;
+
+  // Dynamic step numbering based on whether FirstNet is enabled
+  let stepNum = 0;
 
   return (
     <CollapsibleSection
@@ -229,8 +246,15 @@ export function UserBasedMathBreakdown({ params, financial, result: _result }: U
       accentColor="green"
     >
       <div className="space-y-1 divide-y divide-slate-100">
+        {/* Main MNO Section */}
+        <div className="pb-2">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+            📱 Main MNO Partners Revenue
+          </div>
+        </div>
+
         <MathStep
-          step={1}
+          step={++stepNum}
           label="Active Subscribers"
           formula="Total_Subscribers × Attachment_Rate"
           calculation={`${formatNumber(params.totalSubscribers, 0)} × ${formatPercent(params.attachmentRate)}`}
@@ -238,7 +262,7 @@ export function UserBasedMathBreakdown({ params, financial, result: _result }: U
         />
 
         <MathStep
-          step={2}
+          step={++stepNum}
           label="Annual Revenue per Subscriber"
           formula="Monthly_ARPU × 12"
           calculation={`$${params.monthlyARPU} × 12`}
@@ -246,31 +270,75 @@ export function UserBasedMathBreakdown({ params, financial, result: _result }: U
         />
 
         <MathStep
-          step={3}
-          label="Gross Revenue"
+          step={++stepNum}
+          label="MNO Gross Revenue"
           formula="Active_Subscribers × Annual_Revenue_per_Sub"
           calculation={`${formatNumber(activeSubscribers, 0)} × $${annualRevenuePerSub}`}
-          result={formatCurrencyMillions(grossRevenue, 1)}
+          result={formatCurrencyMillions(mainGrossRevenue, 1)}
         />
 
         <MathStep
-          step={4}
-          label="Net Revenue (ASTS Share)"
-          formula="Gross_Revenue × Revenue_Share"
-          calculation={`${formatCurrencyMillions(grossRevenue, 1)} × ${formatPercent(params.revenueShare)}`}
-          result={formatCurrencyMillions(netRevenue, 1)}
+          step={++stepNum}
+          label="MNO Net Revenue (ASTS Share)"
+          formula="MNO_Gross_Revenue × Revenue_Share"
+          calculation={`${formatCurrencyMillions(mainGrossRevenue, 1)} × ${formatPercent(params.revenueShare)}`}
+          result={formatCurrencyMillions(mainNetRevenue, 1)}
         />
 
+        {/* FirstNet Section - only show if enabled */}
+        {params.firstNetEnabled && (
+          <>
+            <div className="pt-4 pb-2">
+              <div className="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-2">
+                🚒 FirstNet (AT&T Public Safety) Revenue
+              </div>
+            </div>
+
+            <MathStep
+              step={++stepNum}
+              label="FirstNet Gross Revenue"
+              formula="FirstNet_Subscribers × FirstNet_ARPU × 12"
+              calculation={`${params.firstNetSubscribers}M × $${params.firstNetARPU} × 12`}
+              result={formatCurrencyMillions(firstNetGrossRevenue, 1)}
+            />
+
+            <MathStep
+              step={++stepNum}
+              label="FirstNet Net Revenue (ASTS Share)"
+              formula="FirstNet_Gross × Revenue_Share"
+              calculation={`${formatCurrencyMillions(firstNetGrossRevenue, 1)} × ${formatPercent(params.firstNetRevenueShare)}`}
+              result={formatCurrencyMillions(firstNetNetRevenue, 1)}
+            />
+          </>
+        )}
+
+        {/* Combined Section */}
+        <div className="pt-4 pb-2">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+            💰 Combined Valuation
+          </div>
+        </div>
+
+        {params.firstNetEnabled && (
+          <MathStep
+            step={++stepNum}
+            label="Total Net Revenue"
+            formula="MNO_Net_Revenue + FirstNet_Net_Revenue"
+            calculation={`${formatCurrencyMillions(mainNetRevenue, 1)} + ${formatCurrencyMillions(firstNetNetRevenue, 1)}`}
+            result={formatCurrencyMillions(netRevenue, 1)}
+          />
+        )}
+
         <MathStep
-          step={5}
+          step={++stepNum}
           label="EBITDA"
-          formula="Net_Revenue × EBITDA_Margin"
+          formula="Total_Net_Revenue × EBITDA_Margin"
           calculation={`${formatCurrencyMillions(netRevenue, 1)} × ${formatPercent(financial.ebitdaMargin)}`}
           result={formatCurrencyMillions(ebitda, 1)}
         />
 
         <MathStep
-          step={6}
+          step={++stepNum}
           label="Enterprise Value"
           formula="EBITDA × EV/EBITDA_Multiple"
           calculation={`${formatCurrencyMillions(ebitda, 1)} × ${financial.evEbitdaMultiple}x`}
@@ -278,7 +346,7 @@ export function UserBasedMathBreakdown({ params, financial, result: _result }: U
         />
 
         <MathStep
-          step={7}
+          step={++stepNum}
           label="Equity Value"
           formula="Enterprise_Value − Net_Debt"
           calculation={`${formatCurrencyMillions(ev, 1)} − ${formatCurrencyMillions(financial.netDebt, 0)}`}
@@ -286,10 +354,10 @@ export function UserBasedMathBreakdown({ params, financial, result: _result }: U
         />
 
         <MathStep
-          step={8}
+          step={++stepNum}
           label="Stock Price"
-          formula="Equity_Value ÷ Shares_Outstanding"
-          calculation={`${formatCurrencyMillions(equityValue, 1)} ÷ ${financial.sharesOutstanding}M`}
+          formula="Equity_Value ÷ Fully_Diluted_Shares"
+          calculation={`${formatCurrencyMillions(equityValue, 1)} ÷ ${fullyDilutedShares.toFixed(0)}M (${financial.currentShares}M × ${(1 + financial.expectedDilution).toFixed(2)})`}
           result={`$${stockPrice.toFixed(2)}`}
           highlight
         />
@@ -299,7 +367,10 @@ export function UserBasedMathBreakdown({ params, financial, result: _result }: U
       <div className="mt-4 p-3 bg-gradient-to-r from-accent-50 to-green-50 rounded-lg border border-accent-100">
         <div className="text-xs font-semibold text-accent-600 uppercase tracking-wider mb-2">Complete Formula</div>
         <div className="font-mono text-xs text-slate-700 leading-relaxed">
-          Stock Price = ((Subscribers × Attach% × ARPU × 12 × RevShare%) × EBITDA% × Multiple − Debt) ÷ Shares
+          {params.firstNetEnabled
+            ? 'Stock Price = ((MNO_Rev + FirstNet_Rev) × EBITDA% × Multiple − Debt) ÷ (Current_Shares × (1 + Dilution%))'
+            : 'Stock Price = ((Subscribers × Attach% × ARPU × 12 × RevShare%) × EBITDA% × Multiple − Debt) ÷ (Current_Shares × (1 + Dilution%))'
+          }
         </div>
       </div>
     </CollapsibleSection>

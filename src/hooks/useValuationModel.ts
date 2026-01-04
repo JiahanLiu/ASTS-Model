@@ -11,6 +11,7 @@ import {
   CONSTELLATION_SCHEDULE,
   ATTACHMENT_RATE_SCHEDULE,
   EV_EBITDA_SCHEDULE,
+  getFullyDilutedShares,
 } from '../types';
 
 // Calculate valuation using Throughput-Yield Model
@@ -35,8 +36,9 @@ function calculateThroughputModel(
   // Equity Value (EV - Net Debt)
   const equityValue = enterpriseValue - financial.netDebt;
 
-  // Stock Price
-  const stockPrice = equityValue / financial.sharesOutstanding;
+  // Stock Price (using fully diluted shares)
+  const fullyDilutedShares = getFullyDilutedShares(financial);
+  const stockPrice = equityValue / fullyDilutedShares;
 
   return {
     grossRevenue,
@@ -53,17 +55,29 @@ function calculateUserBasedModel(
   userBased: UserBasedModelParams,
   financial: FinancialParams
 ): ValuationResult {
-  // Gross Revenue = Subscribers x Attachment_Rate x ARPU x 12 months
+  // Main MNO Revenue = Subscribers x Attachment_Rate x ARPU x 12 months
   // Subscribers stored in millions, ARPU in dollars
   const subscribersInMillions = userBased.totalSubscribers;
   const activeSubscribers = subscribersInMillions * userBased.attachmentRate;
   const annualRevenuePerSub = userBased.monthlyARPU * 12;
 
-  // Gross revenue in millions
-  const grossRevenue = activeSubscribers * annualRevenuePerSub;
+  // Main gross revenue in millions
+  const mainGrossRevenue = activeSubscribers * annualRevenuePerSub;
+  const mainNetRevenue = mainGrossRevenue * userBased.revenueShare;
 
-  // Net Revenue (after revenue share)
-  const netRevenue = grossRevenue * userBased.revenueShare;
+  // FirstNet Revenue (if enabled)
+  let firstNetGrossRevenue = 0;
+  let firstNetNetRevenue = 0;
+  if (userBased.firstNetEnabled) {
+    // FirstNet subscribers are stored in millions, 100% attachment (dedicated network)
+    const firstNetAnnualRevenue = userBased.firstNetSubscribers * userBased.firstNetARPU * 12;
+    firstNetGrossRevenue = firstNetAnnualRevenue;
+    firstNetNetRevenue = firstNetGrossRevenue * userBased.firstNetRevenueShare;
+  }
+
+  // Combined revenue
+  const grossRevenue = mainGrossRevenue + firstNetGrossRevenue;
+  const netRevenue = mainNetRevenue + firstNetNetRevenue;
 
   // EBITDA calculation
   const ebitda = netRevenue * financial.ebitdaMargin;
@@ -74,8 +88,9 @@ function calculateUserBasedModel(
   // Equity Value
   const equityValue = enterpriseValue - financial.netDebt;
 
-  // Stock Price
-  const stockPrice = equityValue / financial.sharesOutstanding;
+  // Stock Price (using fully diluted shares)
+  const fullyDilutedShares = getFullyDilutedShares(financial);
+  const stockPrice = equityValue / fullyDilutedShares;
 
   return {
     grossRevenue,

@@ -1,4 +1,4 @@
-import { ValuationResult, FinancialParams, ModelType } from '../types';
+import { ValuationResult, FinancialParams, ModelType, getFullyDilutedShares } from '../types';
 import { formatCurrencyMillions, VALUATION_REGIMES } from '../constants/defaults';
 import { EvEbitdaScheduleEditor } from './ScheduleEditor';
 
@@ -9,6 +9,8 @@ interface ValuationSummaryProps {
   activeModel: ModelType;
   financial: FinancialParams;
   evEbitdaSchedule: Record<number, number>;
+  currentPrice?: number | null;
+  upside?: number | null;
   onFinancialChange: <K extends keyof FinancialParams>(key: K, value: FinancialParams[K]) => void;
   onEvEbitdaScheduleChange: (year: number, multiple: number) => void;
   onReset: () => void;
@@ -21,6 +23,8 @@ export function ValuationSummary({
   activeModel,
   financial,
   evEbitdaSchedule,
+  currentPrice,
+  upside,
   onFinancialChange,
   onEvEbitdaScheduleChange,
   onReset,
@@ -66,7 +70,26 @@ export function ValuationSummary({
         <div className="text-6xl font-display font-bold bg-gradient-to-r from-primary-300 via-primary-400 to-accent-400 bg-clip-text text-transparent">
           ${activeResult.stockPrice.toFixed(2)}
         </div>
-        <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 text-sm">
+
+        {/* Upside Display */}
+        {upside !== null && upside !== undefined && (
+          <div className="mt-3 flex items-center justify-center gap-3">
+            {currentPrice !== null && currentPrice !== undefined && (
+              <div className="text-sm text-slate-400">
+                Current: <span className="text-white font-semibold">${currentPrice.toFixed(2)}</span>
+              </div>
+            )}
+            <div className={`text-lg font-bold px-3 py-1 rounded-full ${
+              upside >= 0
+                ? 'bg-green-500/20 text-green-400'
+                : 'bg-red-500/20 text-red-400'
+            }`}>
+              {upside >= 0 ? '↑' : '↓'} {Math.abs(upside).toFixed(0)}% Upside
+            </div>
+          </div>
+        )}
+
+        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 text-sm">
           <span className={`w-2 h-2 rounded-full ${
             regime === 'multiShell' ? 'bg-purple-400' :
             regime === 'fullConstellation' ? 'bg-accent-400' :
@@ -185,22 +208,53 @@ export function ValuationSummary({
             />
           </div>
 
-          {/* Shares Outstanding */}
+          {/* Current Shares */}
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-slate-400">Shares Outstanding (FD)</span>
-              <span className="font-mono text-white">{financial.sharesOutstanding}M</span>
+              <span className="text-slate-400">Current Shares Outstanding</span>
+              <span className="font-mono text-white">{financial.currentShares}M</span>
             </div>
             <input
               type="range"
-              min={400}
-              max={1000}
-              step={10}
-              value={financial.sharesOutstanding}
-              onChange={(e) => onFinancialChange('sharesOutstanding', parseFloat(e.target.value))}
+              min={200}
+              max={500}
+              step={5}
+              value={financial.currentShares}
+              onChange={(e) => onFinancialChange('currentShares', parseFloat(e.target.value))}
               className="w-full slider-progress"
-              style={{ '--range-progress': `${((financial.sharesOutstanding - 400) / 600) * 100}%` } as React.CSSProperties}
+              style={{ '--range-progress': `${((financial.currentShares - 200) / 300) * 100}%` } as React.CSSProperties}
             />
+          </div>
+
+          {/* Expected Dilution */}
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-slate-400">Expected Dilution (by 2030)</span>
+              <span className="font-mono text-white">{(financial.expectedDilution * 100).toFixed(0)}%</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={150}
+              step={5}
+              value={financial.expectedDilution * 100}
+              onChange={(e) => onFinancialChange('expectedDilution', parseFloat(e.target.value) / 100)}
+              className="w-full slider-progress"
+              style={{ '--range-progress': `${(financial.expectedDilution / 1.5) * 100}%` } as React.CSSProperties}
+            />
+          </div>
+
+          {/* Fully Diluted Shares (Calculated) */}
+          <div className="bg-slate-600/30 rounded-lg p-3 mt-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Fully Diluted Shares</span>
+              <span className="font-mono text-primary-300 font-semibold">
+                {getFullyDilutedShares(financial).toFixed(0)}M
+              </span>
+            </div>
+            <div className="text-xs text-slate-500 mt-1">
+              = {financial.currentShares}M × (1 + {(financial.expectedDilution * 100).toFixed(0)}%)
+            </div>
           </div>
 
           {/* Net Debt */}

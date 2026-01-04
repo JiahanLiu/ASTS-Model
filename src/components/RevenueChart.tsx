@@ -117,23 +117,93 @@ export function RevenueChart({ data, activeModel }: RevenueChartProps) {
 interface StockPriceChartProps {
   data: RevenueChartData[];
   activeModel: ModelType;
+  currentPrice?: number | null;
+  impliedPrice?: number;
+  isLivePrice?: boolean;
+  onManualPriceChange?: (price: number) => void;
 }
 
-export function StockPriceChart({ data, activeModel }: StockPriceChartProps) {
+export function StockPriceChart({ data, activeModel, currentPrice, impliedPrice, isLivePrice, onManualPriceChange }: StockPriceChartProps) {
   const showThroughput = activeModel === 'throughput' || activeModel === 'both';
   const showUserBased = activeModel === 'user-based' || activeModel === 'both';
   const showAverage = activeModel === 'both';
 
+  // Get 2030 implied price from data or prop
+  const price2030 = impliedPrice ?? (
+    activeModel === 'throughput' ? data[data.length - 1]?.throughputPrice :
+    activeModel === 'user-based' ? data[data.length - 1]?.userBasedPrice :
+    data[data.length - 1]?.averagePrice
+  ) ?? 0;
+
+  // Calculate upside
+  const upside = currentPrice && currentPrice > 0
+    ? ((price2030 - currentPrice) / currentPrice) * 100
+    : null;
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <div className="flex items-center justify-between mb-6">
+      {/* Header with big price display */}
+      <div className="flex items-start justify-between mb-4">
         <div>
           <h2 className="font-display font-semibold text-slate-800">Stock Price Trajectory</h2>
           <p className="text-sm text-slate-500">Implied share price by year</p>
         </div>
+
+        {/* Big 2030 Price Display */}
+        <div className="text-right">
+          <div className="text-xs text-slate-400 uppercase tracking-wider">2030 Target</div>
+          <div className="text-4xl font-display font-bold text-primary-600">
+            ${price2030.toFixed(2)}
+          </div>
+        </div>
       </div>
 
-      <div className="h-72">
+      {/* Current Price & Upside Row */}
+      <div className="flex items-center gap-4 mb-4 p-3 bg-gradient-to-r from-slate-50 to-primary-50 rounded-xl border border-slate-200">
+        {currentPrice !== null && currentPrice !== undefined && (
+          <div className="flex-1">
+            <div className="text-xs text-slate-400 uppercase tracking-wider flex items-center gap-1 mb-1">
+              Current Price
+              {isLivePrice ? (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-green-100 text-green-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                  LIVE
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-600">
+                  FAILED TO DISPLAY
+                </span>
+              )}
+            </div>
+            {isLivePrice ? (
+              <div className="text-2xl font-bold text-slate-700">${currentPrice.toFixed(2)}</div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500">$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={currentPrice}
+                  onChange={(e) => onManualPriceChange?.(parseFloat(e.target.value) || 0)}
+                  className="w-24 px-2 py-1 text-xl font-bold text-slate-700 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter price"
+                />
+              </div>
+            )}
+          </div>
+        )}
+        {upside !== null && (
+          <div className="flex-1 text-right">
+            <div className="text-xs text-slate-400 uppercase tracking-wider">Potential Upside</div>
+            <div className={`text-2xl font-bold ${upside >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {upside >= 0 ? '+' : ''}{upside.toFixed(0)}%
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />

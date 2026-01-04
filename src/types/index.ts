@@ -16,14 +16,25 @@ export interface UserBasedModelParams {
   attachmentRate: number;          // Attachment rate as decimal (0.005-0.15)
   monthlyARPU: number;             // Monthly ARPU in USD ($5-20)
   revenueShare: number;            // Revenue share to ASTS as decimal (default 0.50)
+  // FirstNet (AT&T Public Safety) Parameters
+  firstNetEnabled: boolean;        // Whether to include FirstNet revenue
+  firstNetSubscribers: number;     // FirstNet subscribers in millions (default 8M)
+  firstNetARPU: number;            // FirstNet monthly ARPU (typically higher for enterprise)
+  firstNetRevenueShare: number;    // Revenue share for FirstNet
 }
 
 // Common Financial Parameters
 export interface FinancialParams {
   ebitdaMargin: number;            // EBITDA margin as decimal (default 0.85)
   evEbitdaMultiple: number;        // EV/EBITDA multiple (15-40x)
-  sharesOutstanding: number;       // Shares outstanding in millions (~400M FD)
+  currentShares: number;           // Current shares outstanding in millions (~273M)
+  expectedDilution: number;        // Expected future dilution as decimal (e.g., 0.50 = 50%)
   netDebt: number;                 // Net debt in millions (positive = debt, negative = cash)
+}
+
+// Helper to calculate fully diluted shares
+export function getFullyDilutedShares(financial: FinancialParams): number {
+  return financial.currentShares * (1 + financial.expectedDilution);
 }
 
 // Combined Model Parameters
@@ -97,13 +108,19 @@ export const DEFAULT_PARAMS: ModelParams = {
   userBased: {
     totalSubscribers: 3000,         // 3 billion (stored in millions)
     attachmentRate: 0.10,           // 10% - target attachment rate
-    monthlyARPU: 8,                 // $8/month
+    monthlyARPU: 5,                 // $5/month
     revenueShare: 0.50,             // 50% to ASTS
+    // FirstNet (AT&T Public Safety)
+    firstNetEnabled: true,          // Include FirstNet by default
+    firstNetSubscribers: 8,         // 8 million FirstNet users
+    firstNetARPU: 5,                // $5/month
+    firstNetRevenueShare: 1.00,     // 100% revenue share
   },
   financial: {
     ebitdaMargin: 0.85,             // 85%
-    evEbitdaMultiple: 15,           // 15x
-    sharesOutstanding: 650,         // ~650M shares FD (diluted for capital raises)
+    evEbitdaMultiple: 25,           // 25x
+    currentShares: 273,             // ~273M current shares outstanding
+    expectedDilution: 0.50,         // 50% expected dilution for constellation financing
     netDebt: 2000,                  // $2B net debt (constellation financing)
   },
   activeModel: 'both',
@@ -131,10 +148,10 @@ export const ATTACHMENT_RATE_SCHEDULE: Record<number, number> = {
 // EV/EBITDA Multiple schedule
 // Higher multiples early (growth phase), compressing as company matures
 export const EV_EBITDA_SCHEDULE: Record<number, number> = {
-  2026: 25,     // 25x - High growth phase, premium multiple
-  2027: 22,     // 22x - Still rapid growth
-  2028: 19,     // 19x - Growth moderating
-  2029: 17,     // 17x - Approaching maturity
-  2030: 15,     // 15x - Steady state multiple
+  2026: 40,     // 40x - High growth phase, premium multiple
+  2027: 35,     // 35x - Still rapid growth
+  2028: 30,     // 30x - Growth moderating
+  2029: 27.5,   // 27.5x - Approaching maturity
+  2030: 25,     // 25x - Steady state multiple
 };
 

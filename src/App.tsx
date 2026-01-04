@@ -1,4 +1,5 @@
 import { useValuationModel } from './hooks/useValuationModel';
+import { useCurrentStockPrice } from './hooks/useCurrentStockPrice';
 import {
   ModelToggle,
   ThroughputModel,
@@ -27,6 +28,14 @@ function App() {
     setActiveModel,
     resetToDefaults,
   } = useValuationModel();
+
+  // Fetch current stock price
+  const { currentPrice, isLive: isLivePrice, setManualPrice } = useCurrentStockPrice();
+
+  // Calculate upside percentage
+  const upside = currentPrice && currentPrice > 0
+    ? ((activeResult.stockPrice - currentPrice) / currentPrice) * 100
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -79,49 +88,111 @@ function App() {
               models: <strong>Throughput-Yield</strong> (satellites × capacity × price)
               and <strong>User-Based</strong> (subscribers × attach rate × ARPU). Adjust the sliders to explore different scenarios.
             </p>
+            <p className="text-xs text-slate-400 mt-2 italic">
+              Developed by{' '}
+              <a
+                href="https://x.com/Jiahanjimliu"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-500 hover:text-primary-600 hover:underline"
+              >
+                @Jiahanjimliu
+              </a>
+              ,{' '}
+              <a
+                href="https://x.com/StockMeetUps"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-500 hover:text-primary-600 hover:underline"
+              >
+                @StockMeetUps
+              </a>
+              , and Aarush
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Financial modeling and research by{' '}
+              <a
+                href="https://x.com/spacanpanman"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-500 hover:text-primary-600 hover:underline"
+              >
+                @spacanpanman
+              </a>
+              {' '}and{' '}
+              <a
+                href="https://x.com/thekookreport"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-500 hover:text-primary-600 hover:underline"
+              >
+                @thekookreport
+              </a>
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Contact any of the first 2 handles on X.com for feedback
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Model for educational purposes only. Not financial advice.
+            </p>
           </div>
         </div>
 
-        {/* Stacked Layout - Each panel takes full width */}
-        <div className="space-y-6 mb-6">
-          {/* Valuation Summary - Full Width */}
-          <ValuationSummary
-            throughputResult={throughputResult}
-            userBasedResult={userBasedResult}
-            activeResult={activeResult}
-            activeModel={params.activeModel}
-            financial={params.financial}
-            evEbitdaSchedule={evEbitdaSchedule}
-            onFinancialChange={updateFinancialParam}
-            onEvEbitdaScheduleChange={updateEvEbitdaSchedule}
-            onReset={resetToDefaults}
-          />
-
-          {/* Throughput-Yield Model - Full Width */}
-          <ThroughputModel
-            params={params.throughput}
-            financial={params.financial}
-            result={throughputResult}
-            constellationSchedule={constellationSchedule}
-            onParamChange={updateThroughputParam}
-            onScheduleChange={updateConstellationSchedule}
-          />
-
-          {/* User-Based Model - Full Width */}
-          <UserBasedModel
-            params={params.userBased}
-            financial={params.financial}
-            result={userBasedResult}
-            attachmentSchedule={attachmentSchedule}
-            onParamChange={updateUserBasedParam}
-            onScheduleChange={updateAttachmentSchedule}
-          />
-        </div>
-
-        {/* Charts Section */}
+        {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <RevenueChart data={yearlyProjections} activeModel={params.activeModel} />
-          <StockPriceChart data={yearlyProjections} activeModel={params.activeModel} />
+          {/* Left Column - Charts & Valuation Display */}
+          <div className="space-y-6">
+            {/* Stock Price Trajectory - First */}
+            <StockPriceChart
+              data={yearlyProjections}
+              activeModel={params.activeModel}
+              currentPrice={currentPrice}
+              impliedPrice={activeResult.stockPrice}
+              isLivePrice={isLivePrice}
+              onManualPriceChange={setManualPrice}
+            />
+
+            {/* Revenue Projections - Second */}
+            <RevenueChart data={yearlyProjections} activeModel={params.activeModel} />
+
+            {/* Valuation Summary - Third */}
+            <ValuationSummary
+              throughputResult={throughputResult}
+              userBasedResult={userBasedResult}
+              activeResult={activeResult}
+              activeModel={params.activeModel}
+              financial={params.financial}
+              evEbitdaSchedule={evEbitdaSchedule}
+              currentPrice={currentPrice}
+              upside={upside}
+              onFinancialChange={updateFinancialParam}
+              onEvEbitdaScheduleChange={updateEvEbitdaSchedule}
+              onReset={resetToDefaults}
+            />
+          </div>
+
+          {/* Right Column - All Adjustable Parameters */}
+          <div className="space-y-6">
+            {/* Throughput-Yield Model */}
+            <ThroughputModel
+              params={params.throughput}
+              financial={params.financial}
+              result={throughputResult}
+              constellationSchedule={constellationSchedule}
+              onParamChange={updateThroughputParam}
+              onScheduleChange={updateConstellationSchedule}
+            />
+
+            {/* User-Based Model */}
+            <UserBasedModel
+              params={params.userBased}
+              financial={params.financial}
+              result={userBasedResult}
+              attachmentSchedule={attachmentSchedule}
+              onParamChange={updateUserBasedParam}
+              onScheduleChange={updateAttachmentSchedule}
+            />
+          </div>
         </div>
 
         {/* Key Assumptions */}
@@ -173,8 +244,29 @@ function App() {
                 <span className="text-xs">6</span>
               </div>
               <p className="text-slate-600">
-                <strong className="text-slate-800">~600M Shares</strong> diluted for capital raises
+                <strong className="text-slate-800">~273M Current Shares</strong> + expected dilution
               </p>
+            </div>
+          </div>
+
+          {/* Additional Revenue Opportunities Not Yet Modeled */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg">📈</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Additional Upside Not Yet Modeled</h4>
+                <p className="text-sm text-green-700 mb-2">
+                  This model does not yet account for potential revenue from:
+                </p>
+                <ul className="text-sm text-green-700 space-y-1 list-disc list-inside">
+                  <li><strong>Golden Dome</strong> - Defense/government contracts</li>
+                  <li><strong>Space Applications</strong> - Satellite-to-satellite connectivity</li>
+                  <li><strong>Naval & Ship Applications</strong> - Maritime connectivity solutions</li>
+                  <li><strong>International FirstNet</strong> - First responder networks in Australia, Japan, and other countries</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -182,7 +274,6 @@ function App() {
         {/* Data Source Attribution */}
         <div className="text-center text-xs text-slate-400 mb-6">
           <p>Based on research from Code Red 1 - AST SpaceMobile</p>
-          <p className="mt-1">Model for educational purposes only. Not financial advice.</p>
         </div>
       </main>
 
