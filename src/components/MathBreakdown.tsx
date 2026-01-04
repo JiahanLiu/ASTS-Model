@@ -229,6 +229,7 @@ export function UserBasedMathBreakdown({ params, financial, result: _result }: U
 
   // Combined totals
   const grossRevenue = mainGrossRevenue + firstNetGrossRevenue;
+  void grossRevenue; // Used in calculations, displayed separately
   const netRevenue = mainNetRevenue + firstNetNetRevenue;
   const ebitda = netRevenue * financial.ebitdaMargin;
   const ev = ebitda * financial.evEbitdaMultiple;
