@@ -86,7 +86,7 @@ function App() {
                 TheKOOKReport
               </a>{' '}
               models: <strong>Throughput-Yield</strong> (satellites × capacity × price)
-              and <strong>User-Based</strong> (subscribers × attach rate × ARPU). Adjust the sliders to explore different scenarios.
+              and <strong>User-Based</strong> (subscribers × attach rate × ARPU).
             </p>
             <p className="text-xs text-slate-400 mt-2 italic">
               Developed by{' '}
@@ -107,7 +107,7 @@ function App() {
               >
                 @StockMeetUps
               </a>
-              , and Aarush; contact for feedback
+              , and Aarush; contact to provide feedback.
             </p>
             <p className="text-xs text-slate-400 mt-1">
               Financial modeling and research by{' '}
