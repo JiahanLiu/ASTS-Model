@@ -76,20 +76,35 @@ function App() {
           <div>
             <h3 className="font-semibold text-slate-800 mb-1">Interactive Valuation Model</h3>
             <p className="text-sm text-slate-600">
-              This app is based on{' '}
+              This app is based on info from various sources including the notes from{' '}
               <a
-                href="https://www.kookreport.com/post/ast-spacemobile-asts-the-mobile-satellite-cellular-network-monopoly-please-find-my-final-comp"
+                href="https://x.com/thekookreport"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary-600 hover:text-primary-700 underline font-medium"
               >
-                TheKOOKReport
-              </a>{' '}
-              models: <strong>Throughput-Yield</strong> (satellites × capacity × price)
-              and <strong>User-Based</strong> (subscribers × attach rate × ARPU).
+                @TheKookreport
+              </a>
+              ,{' '}
+              <a
+                href="https://x.com/spacanpanman"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-600 hover:text-primary-700 underline font-medium"
+              >
+                @spacanpanman
+              </a>
+              {' '}and space mob community.
             </p>
-            <p className="text-xs text-slate-400 mt-2 italic">
-              Developed by{' '}
+            <p className="text-xs text-slate-500 mt-2">
+              We built a ASTS interactive model for you to see how various combinations can make the projected valuations.
+            </p>
+            <p className="text-xs text-slate-500 mt-2">
+              <strong>Throughput-Yield</strong> (satellites × capacity × price) and{' '}
+              <strong>User-Based</strong> (subscribers × attach rate × ARPU).
+            </p>
+            <p className="text-xs text-slate-500 mt-3">
+              This model is developed by{' '}
               <a
                 href="https://x.com/Jiahanjimliu"
                 target="_blank"
@@ -107,30 +122,10 @@ function App() {
               >
                 @StockMeetUps
               </a>
-              , and Aarush; contact to provide feedback.
+              {' '}for educational purposes; this is not financial advice.
             </p>
-            <p className="text-xs text-slate-400 mt-1">
-              Financial modeling and research by{' '}
-              <a
-                href="https://x.com/spacanpanman"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-500 hover:text-primary-600 hover:underline"
-              >
-                @spacanpanman
-              </a>
-              {' '}and{' '}
-              <a
-                href="https://x.com/thekookreport"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-500 hover:text-primary-600 hover:underline"
-              >
-                @thekookreport
-              </a>
-            </p>
-            <p className="text-xs text-slate-400 mt-1">
-              Model for educational purposes only. Not financial advice.
+            <p className="text-xs text-slate-500 mt-1">
+              Feel free to contact on X to provide feedback.
             </p>
           </div>
         </div>
@@ -260,36 +255,8 @@ function App() {
           </div>
         </div>
 
-        {/* Data Source Attribution */}
-        <div className="text-center text-xs text-slate-400 mb-6">
-          <p>Based on research from Code Red 1 - AST SpaceMobile</p>
-        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 mt-12 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-slate-500 text-sm">
-              <span>ASTS Stock Price Model</span>
-              <span className="text-slate-300">•</span>
-              <span>Built with React + Recharts + TailwindCSS</span>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-slate-500">
-              <span>Ticker: ASTS (NASDAQ)</span>
-              <span className="text-slate-300">•</span>
-              <a
-                href="https://ast-science.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 hover:text-primary-700"
-              >
-                ast-science.com
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
