@@ -217,7 +217,7 @@ function App() {
                 <span className="text-xs">3</span>
               </div>
               <p className="text-slate-600">
-                <strong className="text-slate-800">3B Addressable Users</strong> via MNO partnerships
+                <strong className="text-slate-800">200 Satellites</strong> by 2030 full constellation
               </p>
             </div>
             <div className="flex items-start gap-3">
@@ -225,20 +225,12 @@ function App() {
                 <span className="text-xs">4</span>
               </div>
               <p className="text-slate-600">
-                <strong className="text-slate-800">200 Satellites</strong> by 2030 full constellation
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-xs">5</span>
-              </div>
-              <p className="text-slate-600">
                 <strong className="text-slate-800">~$2B Net Debt</strong> for constellation financing
               </p>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-xs">6</span>
+                <span className="text-xs">5</span>
               </div>
               <p className="text-slate-600">
                 <strong className="text-slate-800">~273M Current Shares</strong> + expected dilution
