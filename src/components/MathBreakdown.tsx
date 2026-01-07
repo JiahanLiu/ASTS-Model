@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ThroughputModelParams, UserBasedModelParams, FinancialParams, ValuationResult, getFullyDilutedShares } from '../types';
-import { formatCurrencyMillions, formatNumber, formatPercent } from '../constants/defaults';
+import { formatCurrencyMillions, formatNumberMillions, formatPercent } from '../constants/defaults';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -140,14 +140,14 @@ export function ThroughputMathBreakdown({ params, financial, result: _result }: 
           label="Total Billable GB (Fleet)"
           formula="Satellites × Billable_GB_per_Sat"
           calculation={`${params.satellites} × ${billableGB.toFixed(1)}M`}
-          result={`${formatNumber(totalBillableGB, 1)} GB/year`}
+          result={`${formatNumberMillions(totalBillableGB, 1)} GB/year`}
         />
 
         <MathStep
           step={3}
           label="Gross Revenue"
           formula="Total_Billable_GB × Price_per_GB"
-          calculation={`${formatNumber(totalBillableGB, 1)} × $${params.pricePerGB}`}
+          calculation={`${formatNumberMillions(totalBillableGB, 1)} × $${params.pricePerGB}`}
           result={formatCurrencyMillions(grossRevenue, 1)}
         />
 
@@ -258,8 +258,8 @@ export function UserBasedMathBreakdown({ params, financial, result: _result }: U
           step={++stepNum}
           label="Active Subscribers"
           formula="Total_Subscribers × Attachment_Rate"
-          calculation={`${formatNumber(params.totalSubscribers, 0)} × ${formatPercent(params.attachmentRate)}`}
-          result={`${formatNumber(activeSubscribers, 0)} subscribers`}
+          calculation={`${formatNumberMillions(params.totalSubscribers, 0)} × ${formatPercent(params.attachmentRate)}`}
+          result={`${formatNumberMillions(activeSubscribers, 0)} subscribers`}
         />
 
         <MathStep
@@ -274,7 +274,7 @@ export function UserBasedMathBreakdown({ params, financial, result: _result }: U
           step={++stepNum}
           label="MNO Gross Revenue"
           formula="Active_Subscribers × Annual_Revenue_per_Sub"
-          calculation={`${formatNumber(activeSubscribers, 0)} × $${annualRevenuePerSub}`}
+          calculation={`${formatNumberMillions(activeSubscribers, 0)} × $${annualRevenuePerSub}`}
           result={formatCurrencyMillions(mainGrossRevenue, 1)}
         />
 

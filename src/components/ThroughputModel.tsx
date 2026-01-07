@@ -44,7 +44,7 @@ export function ThroughputModel({
           label="Number of Satellites"
           value={params.satellites}
           min={10}
-          max={200}
+          max={248}
           step={5}
           onChange={(v) => onParamChange('satellites', v)}
           description="Block 2 Bluebird satellites in constellation"

@@ -49,6 +49,14 @@ export const formatNumber = (value: number, decimals = 0): string => {
   return value.toFixed(decimals);
 };
 
+// Format values that are already in millions (e.g., 300 = 300M, 1500 = 1.5B)
+export const formatNumberMillions = (valueInMillions: number, decimals = 1): string => {
+  if (Math.abs(valueInMillions) >= 1000) {
+    return `${(valueInMillions / 1000).toFixed(decimals)}B`;
+  }
+  return `${valueInMillions.toFixed(decimals)}M`;
+};
+
 export const formatPercent = (value: number, decimals = 0): string => {
   return `${(value * 100).toFixed(decimals)}%`;
 };

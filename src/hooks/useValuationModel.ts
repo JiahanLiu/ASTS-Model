@@ -14,6 +14,16 @@ import {
   getFullyDilutedShares,
 } from '../types';
 
+// Type for exported configuration
+export interface ExportedConfig {
+  version: string;
+  exportedAt: string;
+  params: ModelParams;
+  constellationSchedule: Record<number, number>;
+  attachmentSchedule: Record<number, number>;
+  evEbitdaSchedule: Record<number, number>;
+}
+
 // Calculate valuation using Throughput-Yield Model
 function calculateThroughputModel(
   throughput: ThroughputModelParams,
@@ -160,16 +170,30 @@ export function useValuationModel() {
     { ...EV_EBITDA_SCHEDULE }
   );
 
-  // Calculate results for both models
-  const throughputResult = useMemo(
-    () => calculateThroughputModel(params.throughput, params.financial),
-    [params.throughput, params.financial]
-  );
+  // Calculate results for both models using 2030 scheduled values
+  const throughputResult = useMemo(() => {
+    const throughputParams: ThroughputModelParams = {
+      ...params.throughput,
+      satellites: constellationSchedule[2030] ?? params.throughput.satellites,
+    };
+    const financialParams: FinancialParams = {
+      ...params.financial,
+      evEbitdaMultiple: evEbitdaSchedule[2030] ?? params.financial.evEbitdaMultiple,
+    };
+    return calculateThroughputModel(throughputParams, financialParams);
+  }, [params.throughput, params.financial, constellationSchedule, evEbitdaSchedule]);
 
-  const userBasedResult = useMemo(
-    () => calculateUserBasedModel(params.userBased, params.financial),
-    [params.userBased, params.financial]
-  );
+  const userBasedResult = useMemo(() => {
+    const userBasedParams: UserBasedModelParams = {
+      ...params.userBased,
+      attachmentRate: attachmentSchedule[2030] ?? params.userBased.attachmentRate,
+    };
+    const financialParams: FinancialParams = {
+      ...params.financial,
+      evEbitdaMultiple: evEbitdaSchedule[2030] ?? params.financial.evEbitdaMultiple,
+    };
+    return calculateUserBasedModel(userBasedParams, financialParams);
+  }, [params.userBased, params.financial, attachmentSchedule, evEbitdaSchedule]);
 
   // Get the active result based on model selection
   const activeResult = useMemo(() => {
@@ -221,6 +245,13 @@ export function useValuationModel() {
           [key]: value,
         },
       }));
+      // Sync attachmentRate with 2030 schedule value
+      if (key === 'attachmentRate') {
+        setAttachmentSchedule(prev => ({
+          ...prev,
+          [2030]: value as number,
+        }));
+      }
     },
     []
   );
@@ -264,6 +295,16 @@ export function useValuationModel() {
       ...prev,
       [year]: rate,
     }));
+    // Sync 2030 value with userBased.attachmentRate
+    if (year === 2030) {
+      setParams(prev => ({
+        ...prev,
+        userBased: {
+          ...prev.userBased,
+          attachmentRate: rate,
+        },
+      }));
+    }
   }, []);
 
   const updateEvEbitdaSchedule = useCallback((year: number, multiple: number) => {
@@ -283,6 +324,59 @@ export function useValuationModel() {
     }
   }, []);
 
+  // Export configuration as JSON
+  const exportConfig = useCallback(() => {
+    const config: ExportedConfig = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      params,
+      constellationSchedule,
+      attachmentSchedule,
+      evEbitdaSchedule,
+    };
+    const jsonString = JSON.stringify(config, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `asts-model-config-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [params, constellationSchedule, attachmentSchedule, evEbitdaSchedule]);
+
+  // Import configuration from JSON
+  const importConfig = useCallback((file: File): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const config: ExportedConfig = JSON.parse(content);
+
+          // Validate the config structure
+          if (!config.params || !config.constellationSchedule ||
+              !config.attachmentSchedule || !config.evEbitdaSchedule) {
+            throw new Error('Invalid configuration file format');
+          }
+
+          // Apply the configuration
+          setParams(config.params);
+          setConstellationSchedule(config.constellationSchedule);
+          setAttachmentSchedule(config.attachmentSchedule);
+          setEvEbitdaSchedule(config.evEbitdaSchedule);
+
+          resolve();
+        } catch {
+          reject(new Error('Failed to parse configuration file'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
+  }, []);
+
   return {
     params,
     throughputResult,
@@ -300,6 +394,8 @@ export function useValuationModel() {
     updateEvEbitdaSchedule,
     setActiveModel,
     resetToDefaults,
+    exportConfig,
+    importConfig,
   };
 }
 

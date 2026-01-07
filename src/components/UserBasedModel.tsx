@@ -54,8 +54,8 @@ export function UserBasedModel({
           id="attachmentRate"
           label="Attachment Rate"
           value={params.attachmentRate}
-          min={0.005}
-          max={0.15}
+          min={0}
+          max={0.20}
           step={0.005}
           onChange={(v) => onParamChange('attachmentRate', v)}
           description="% of subscribers opting into SpaceMobile"
@@ -65,7 +65,7 @@ export function UserBasedModel({
           id="monthlyARPU"
           label="Monthly ARPU"
           value={params.monthlyARPU}
-          min={5}
+          min={1}
           max={25}
           step={1}
           onChange={(v) => onParamChange('monthlyARPU', v)}
@@ -130,8 +130,8 @@ export function UserBasedModel({
               id="firstNetARPU"
               label="FirstNet Monthly ARPU"
               value={params.firstNetARPU}
-              min={5}
-              max={30}
+              min={1}
+              max={25}
               step={1}
               onChange={(v) => onParamChange('firstNetARPU', v)}
               description="Enterprise/public safety premium pricing"
@@ -141,7 +141,7 @@ export function UserBasedModel({
               id="firstNetRevenueShare"
               label="FirstNet Revenue Share"
               value={params.firstNetRevenueShare}
-              min={0.40}
+              min={0}
               max={1.00}
               step={0.01}
               onChange={(v) => onParamChange('firstNetRevenueShare', v)}

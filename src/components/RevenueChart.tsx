@@ -29,7 +29,7 @@ export function RevenueChart({ data, activeModel }: RevenueChartProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-display font-semibold text-slate-800">Revenue Projections</h2>
-          <p className="text-sm text-slate-500">Annual net revenue by valuation model (2025-2030)</p>
+          <p className="text-sm text-slate-500">Annual net revenue by valuation model (2026-2030)</p>
         </div>
       </div>
 
@@ -118,21 +118,21 @@ interface StockPriceChartProps {
   data: RevenueChartData[];
   activeModel: ModelType;
   currentPrice?: number | null;
-  impliedPrice?: number;
   isLivePrice?: boolean;
   onManualPriceChange?: (price: number) => void;
 }
 
-export function StockPriceChart({ data, activeModel, currentPrice, impliedPrice, isLivePrice, onManualPriceChange }: StockPriceChartProps) {
+export function StockPriceChart({ data, activeModel, currentPrice, isLivePrice, onManualPriceChange }: StockPriceChartProps) {
   const showThroughput = activeModel === 'throughput' || activeModel === 'both';
   const showUserBased = activeModel === 'user-based' || activeModel === 'both';
   const showAverage = activeModel === 'both';
 
-  // Get 2030 implied price from data or prop
-  const price2030 = impliedPrice ?? (
-    activeModel === 'throughput' ? data[data.length - 1]?.throughputPrice :
-    activeModel === 'user-based' ? data[data.length - 1]?.userBasedPrice :
-    data[data.length - 1]?.averagePrice
+  // Get 2030 implied price from chart data (last data point is 2030)
+  const lastDataPoint = data[data.length - 1];
+  const price2030 = (
+    activeModel === 'throughput' ? lastDataPoint?.throughputPrice :
+    activeModel === 'user-based' ? lastDataPoint?.userBasedPrice :
+    lastDataPoint?.averagePrice
   ) ?? 0;
 
   // Calculate upside
@@ -151,8 +151,8 @@ export function StockPriceChart({ data, activeModel, currentPrice, impliedPrice,
 
         {/* Big 2030 Price Display */}
         <div className="text-right">
-          <div className="text-xs text-slate-400 uppercase tracking-wider">2030 Target</div>
-          <div className="text-4xl font-display font-bold text-primary-600">
+          <div className="text-sm font-medium text-slate-500 uppercase tracking-wider">2030 Target</div>
+          <div className="text-2xl font-display font-bold text-primary-600">
             ${price2030.toFixed(2)}
           </div>
         </div>

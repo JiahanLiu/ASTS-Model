@@ -53,16 +53,16 @@ export function useCurrentStockPrice(): StockPriceData {
                 'Accept': 'application/json',
               },
             });
-            
+
             if (!res.ok) continue;
-            
+
             const data = await res.json();
-            
+
             // Try to extract price from Yahoo Finance response
-            const price = 
+            const price =
               data?.chart?.result?.[0]?.meta?.regularMarketPrice ||
               data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.slice(-1)?.[0];
-            
+
             if (price && price > 0) {
               setCurrentPrice(price);
               setIsLoading(false);

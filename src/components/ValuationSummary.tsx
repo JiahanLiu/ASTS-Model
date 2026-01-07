@@ -1,5 +1,5 @@
 import { ValuationResult, FinancialParams, ModelType, getFullyDilutedShares } from '../types';
-import { formatCurrencyMillions, VALUATION_REGIMES } from '../constants/defaults';
+import { formatCurrencyMillions } from '../constants/defaults';
 import { EvEbitdaScheduleEditor } from './ScheduleEditor';
 
 interface ValuationSummaryProps {
@@ -29,20 +29,6 @@ export function ValuationSummary({
   onEvEbitdaScheduleChange,
   onReset,
 }: ValuationSummaryProps) {
-  // Determine valuation regime
-  const getValuationRegime = (price: number) => {
-    if (price >= VALUATION_REGIMES.multiShell.min) return 'multiShell';
-    if (price >= VALUATION_REGIMES.fullConstellation.min) return 'fullConstellation';
-    if (price >= VALUATION_REGIMES.coverage2026.min) return 'coverage2026';
-    return 'nav';
-  };
-
-  const regime = getValuationRegime(activeResult.stockPrice);
-  const regimeInfo = VALUATION_REGIMES[regime];
-
-  // Price indicator position (0-100%)
-  const pricePosition = Math.min(100, Math.max(0, (activeResult.stockPrice / 300) * 100));
-
   return (
     <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-xl p-6 text-white">
       {/* Header with stock ticker style */}
@@ -66,7 +52,9 @@ export function ValuationSummary({
 
       {/* Main Stock Price Display */}
       <div className="text-center mb-8">
-        <div className="text-sm text-slate-400 mb-1">2030 Implied Stock Price</div>
+        <div className="text-xl font-display font-semibold text-white tracking-wide mb-2">
+          2030 Implied Stock Price
+        </div>
         <div className="text-6xl font-display font-bold bg-gradient-to-r from-primary-300 via-primary-400 to-accent-400 bg-clip-text text-transparent">
           ${activeResult.stockPrice.toFixed(2)}
         </div>
@@ -88,36 +76,6 @@ export function ValuationSummary({
             </div>
           </div>
         )}
-
-        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 text-sm">
-          <span className={`w-2 h-2 rounded-full ${
-            regime === 'multiShell' ? 'bg-purple-400' :
-            regime === 'fullConstellation' ? 'bg-accent-400' :
-            regime === 'coverage2026' ? 'bg-primary-400' : 'bg-slate-400'
-          }`} />
-          <span className="text-slate-300">{regimeInfo.label}</span>
-        </div>
-      </div>
-
-      {/* Price Range Indicator */}
-      <div className="mb-8">
-        <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
-          <div className="absolute inset-y-0 left-0 w-[16.6%] bg-slate-600" />
-          <div className="absolute inset-y-0 left-[16.6%] w-[16.6%] bg-primary-600" />
-          <div className="absolute inset-y-0 left-[33.2%] w-[33.4%] bg-accent-600" />
-          <div className="absolute inset-y-0 left-[66.6%] w-[33.4%] bg-purple-600" />
-          <div
-            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg border-2 border-primary-400"
-            style={{ left: `calc(${pricePosition}% - 8px)` }}
-          />
-        </div>
-        <div className="flex justify-between mt-2 text-xs text-slate-500">
-          <span>$0</span>
-          <span>$50 NAV</span>
-          <span>$100 Coverage</span>
-          <span>$250 Full</span>
-          <span>$300+</span>
-        </div>
       </div>
 
       {/* Model Comparison Cards */}
@@ -230,17 +188,17 @@ export function ValuationSummary({
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-400">Expected Dilution (by 2030)</span>
-              <span className="font-mono text-white">{(financial.expectedDilution * 100).toFixed(0)}%</span>
+              <span className="font-mono text-white">{(financial.expectedDilution * 100).toFixed(1)}%</span>
             </div>
             <input
               type="range"
               min={0}
-              max={150}
-              step={5}
+              max={50}
+              step={0.1}
               value={financial.expectedDilution * 100}
               onChange={(e) => onFinancialChange('expectedDilution', parseFloat(e.target.value) / 100)}
               className="w-full slider-progress"
-              style={{ '--range-progress': `${(financial.expectedDilution / 1.5) * 100}%` } as React.CSSProperties}
+              style={{ '--range-progress': `${(financial.expectedDilution / 0.5) * 100}%` } as React.CSSProperties}
             />
           </div>
 
@@ -253,7 +211,7 @@ export function ValuationSummary({
               </span>
             </div>
             <div className="text-xs text-slate-500 mt-1">
-              = {financial.currentShares}M × (1 + {(financial.expectedDilution * 100).toFixed(0)}%)
+              = {financial.currentShares}M × (1 + {(financial.expectedDilution * 100).toFixed(1)}%)
             </div>
           </div>
 

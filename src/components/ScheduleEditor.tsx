@@ -11,6 +11,61 @@ interface ScheduleEditorProps {
   color: 'blue' | 'green' | 'purple';
 }
 
+// Individual input component with local state for smooth editing
+function ScheduleInput({
+  year,
+  value,
+  onChange,
+  formatValue,
+  parseValue,
+  inputClass,
+}: {
+  year: number;
+  value: number;
+  onChange: (year: number, value: number) => void;
+  formatValue: (value: number) => string;
+  parseValue: (input: string) => number;
+  inputClass: string;
+}) {
+  const [localValue, setLocalValue] = useState(formatValue(value));
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Update local value when external value changes (and not focused)
+  if (!isFocused && formatValue(value) !== localValue) {
+    setLocalValue(formatValue(value));
+  }
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    const parsed = parseValue(localValue);
+    if (!isNaN(parsed) && parsed >= 0) {
+      onChange(year, parsed);
+      setLocalValue(formatValue(parsed));
+    } else {
+      // Reset to current value if invalid
+      setLocalValue(formatValue(value));
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.currentTarget.blur();
+    }
+  };
+
+  return (
+    <input
+      type="text"
+      value={localValue}
+      onFocus={() => setIsFocused(true)}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      className={inputClass}
+    />
+  );
+}
+
 export function ScheduleEditor({
   title,
   icon,
@@ -78,16 +133,13 @@ export function ScheduleEditor({
                 <label className="block text-xs font-medium text-slate-500 mb-1">
                   {year}
                 </label>
-                <input
-                  type="text"
-                  value={formatValue(schedule[year])}
-                  onChange={(e) => {
-                    const parsed = parseValue(e.target.value);
-                    if (!isNaN(parsed)) {
-                      onChange(year, parsed);
-                    }
-                  }}
-                  className={`w-full px-2 py-1.5 text-center text-sm font-mono border border-slate-300 rounded-lg text-slate-800 ${c.input}`}
+                <ScheduleInput
+                  year={year}
+                  value={schedule[year]}
+                  onChange={onChange}
+                  formatValue={formatValue}
+                  parseValue={parseValue}
+                  inputClass={`w-full px-2 py-1.5 text-center text-sm font-mono border border-slate-300 rounded-lg text-slate-800 ${c.input}`}
                 />
                 <span className="text-xs text-slate-400">{unit}</span>
               </div>
@@ -133,7 +185,7 @@ export function AttachmentScheduleEditor({ schedule, onChange }: AttachmentSched
       icon="📈"
       schedule={schedule}
       onChange={onChange}
-      formatValue={(v) => (v * 100).toFixed(1)}
+      formatValue={(v) => (v * 100).toFixed(2)}
       parseValue={(s) => parseFloat(s) / 100}
       unit="%"
       color="green"
