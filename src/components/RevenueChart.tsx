@@ -120,9 +120,10 @@ interface StockPriceChartProps {
   currentPrice?: number | null;
   isLivePrice?: boolean;
   onManualPriceChange?: (price: number) => void;
+  fullyDilutedShares?: number;
 }
 
-export function StockPriceChart({ data, activeModel, currentPrice, isLivePrice, onManualPriceChange }: StockPriceChartProps) {
+export function StockPriceChart({ data, activeModel, currentPrice, isLivePrice, onManualPriceChange, fullyDilutedShares }: StockPriceChartProps) {
   const showThroughput = activeModel === 'throughput' || activeModel === 'both';
   const showUserBased = activeModel === 'user-based' || activeModel === 'both';
   const showAverage = activeModel === 'both';
@@ -150,11 +151,21 @@ export function StockPriceChart({ data, activeModel, currentPrice, isLivePrice, 
         </div>
 
         {/* Big 2030 Price Display */}
-        <div className="text-right">
-          <div className="text-sm font-medium text-slate-500 uppercase tracking-wider">2030 Target</div>
-          <div className="text-2xl font-display font-bold text-primary-600">
-            ${price2030.toFixed(2)}
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <div className="text-sm font-medium text-slate-500 uppercase tracking-wider">2030 Target</div>
+            <div className="text-2xl font-display font-bold text-primary-600">
+              ${price2030.toFixed(2)}
+            </div>
           </div>
+          {fullyDilutedShares && (
+            <div className="text-right">
+              <div className="text-sm font-medium text-slate-500 uppercase tracking-wider">2030 Mcap</div>
+              <div className="text-2xl font-display font-bold text-accent-600">
+                ${((price2030 * fullyDilutedShares) / 1000).toFixed(1)}B
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -195,7 +206,7 @@ export function StockPriceChart({ data, activeModel, currentPrice, isLivePrice, 
         )}
         {upside !== null && (
           <div className="flex-1 text-right">
-            <div className="text-xs text-slate-400 uppercase tracking-wider">Potential Upside</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider">2030 Upside</div>
             <div className={`text-2xl font-bold ${upside >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {upside >= 0 ? '+' : ''}{upside.toFixed(0)}%
             </div>
@@ -224,7 +235,11 @@ export function StockPriceChart({ data, activeModel, currentPrice, isLivePrice, 
                 borderRadius: '12px',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               }}
-              formatter={(value: number) => [`$${value.toFixed(2)}`, '']}
+              formatter={(value: number, name: string) => {
+                const mcap = fullyDilutedShares ? (value * fullyDilutedShares) / 1000 : null;
+                const mcapStr = mcap ? ` (Mcap: $${mcap.toFixed(1)}B)` : '';
+                return [`$${value.toFixed(2)}${mcapStr}`, name];
+              }}
               labelStyle={{ color: '#1e293b', fontWeight: 600 }}
             />
             <Legend

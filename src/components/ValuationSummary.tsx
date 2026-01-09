@@ -52,11 +52,29 @@ export function ValuationSummary({
 
       {/* Main Stock Price Display */}
       <div className="text-center mb-8">
-        <div className="text-xl font-display font-semibold text-white tracking-wide mb-2">
-          2030 Implied Stock Price
-        </div>
-        <div className="text-6xl font-display font-bold bg-gradient-to-r from-primary-300 via-primary-400 to-accent-400 bg-clip-text text-transparent">
-          ${activeResult.stockPrice.toFixed(2)}
+        <div className="flex items-center justify-center gap-8 mb-4">
+          {/* Implied Stock Price */}
+          <div>
+            <div className="text-lg font-display font-semibold text-slate-300 tracking-wide mb-1">
+              2030 Implied Stock Price
+            </div>
+            <div className="text-5xl font-display font-bold bg-gradient-to-r from-primary-300 via-primary-400 to-accent-400 bg-clip-text text-transparent">
+              ${activeResult.stockPrice.toFixed(2)}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="h-16 w-px bg-slate-600"></div>
+
+          {/* Market Cap */}
+          <div>
+            <div className="text-lg font-display font-semibold text-slate-300 tracking-wide mb-1">
+              Market Cap
+            </div>
+            <div className="text-5xl font-display font-bold bg-gradient-to-r from-accent-300 via-accent-400 to-primary-400 bg-clip-text text-transparent">
+              ${((activeResult.stockPrice * getFullyDilutedShares(financial)) / 1000).toFixed(1)}B
+            </div>
+          </div>
         </div>
 
         {/* Upside Display */}

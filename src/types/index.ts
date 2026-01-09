@@ -108,12 +108,12 @@ export const DEFAULT_PARAMS: ModelParams = {
   userBased: {
     totalSubscribers: 3000,         // 3 billion (stored in millions)
     attachmentRate: 0.10,           // 10% - synced with 2030 attachment rate schedule
-    monthlyARPU: 5,                 // $5/month
+    monthlyARPU: 8,                 // $8/month
     revenueShare: 0.50,             // 50% to ASTS
     // FirstNet (AT&T Public Safety)
     firstNetEnabled: true,          // Include FirstNet by default
     firstNetSubscribers: 8,         // 8 million FirstNet users
-    firstNetARPU: 5,                // $5/month
+    firstNetARPU: 8,                // $8/month
     firstNetRevenueShare: 1.00,     // 100% revenue share
   },
   financial: {
@@ -138,10 +138,10 @@ export const CONSTELLATION_SCHEDULE: Record<number, number> = {
 // Attachment rate growth assumptions
 // Ramp to 10% by 2030
 export const ATTACHMENT_RATE_SCHEDULE: Record<number, number> = {
-  2026: 0.025,  // 2.5% - Initial coverage and early adopters
-  2027: 0.05,   // 5% - Continuous coverage achieved
-  2028: 0.07,   // 7% - Growing awareness and adoption
-  2029: 0.085,  // 8.5% - Broader market penetration
+  2026: 0.01,   // 1% - Initial coverage and early adopters
+  2027: 0.04,   // 4% - Continuous coverage achieved
+  2028: 0.06,   // 6% - Growing awareness and adoption
+  2029: 0.08,   // 8% - Broader market penetration
   2030: 0.10,   // 10% - Target ceiling reached
 };
 

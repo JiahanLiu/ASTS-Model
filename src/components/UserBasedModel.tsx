@@ -110,7 +110,7 @@ export function UserBasedModel({
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">🚒</span>
               <span className="text-sm font-medium text-orange-800">
-                First Responder Network (AT&T)
+                First Responder Network
               </span>
             </div>
 

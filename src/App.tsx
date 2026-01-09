@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useValuationModel } from './hooks/useValuationModel';
 import { useCurrentStockPrice } from './hooks/useCurrentStockPrice';
+import { getFullyDilutedShares } from './types';
 import {
   ModelToggle,
   ThroughputModel,
@@ -158,6 +159,7 @@ function App() {
               currentPrice={currentPrice}
               isLivePrice={isLivePrice}
               onManualPriceChange={setManualPrice}
+              fullyDilutedShares={getFullyDilutedShares(params.financial)}
             />
 
             {/* Revenue Projections - Second */}
@@ -272,7 +274,7 @@ function App() {
                 <span className="text-xs">1</span>
               </div>
               <p className="text-slate-600">
-                <strong className="text-slate-800">50/50 Revenue Share</strong> with MNO partners
+                <strong className="text-slate-800">2026 Attachment Rate is 1%</strong> because there will be a beta and retail ramp phase will be the last quarter 2026. Followed by faster ramp in 2027.
               </p>
             </div>
             <div className="flex items-start gap-3">
