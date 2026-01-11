@@ -1,6 +1,87 @@
+import { useState, useEffect } from 'react';
 import { ValuationResult, FinancialParams, ModelType, getFullyDilutedShares } from '../types';
 import { formatCurrencyMillions } from '../constants/defaults';
 import { EvEbitdaScheduleEditor } from './ScheduleEditor';
+
+// Editable input component for inline use
+function EditableValue({
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  suffix = '',
+  prefix = '',
+  formatDisplay,
+  parseInput,
+  width = '4ch',
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  min: number;
+  max: number;
+  step: number;
+  suffix?: string;
+  prefix?: string;
+  formatDisplay?: (val: number) => string;
+  parseInput?: (input: string) => number | null;
+  width?: string;
+}) {
+  const defaultFormat = (val: number) => `${prefix}${val}${suffix}`;
+  const defaultParse = (input: string): number | null => {
+    const num = parseFloat(input.replace(/[^0-9.-]/g, ''));
+    return isNaN(num) ? null : num;
+  };
+
+  const format = formatDisplay || defaultFormat;
+  const parse = parseInput || defaultParse;
+
+  const [inputValue, setInputValue] = useState(format(value));
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused) {
+      setInputValue(format(value));
+    }
+  }, [value, isFocused, format]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+
+    const parsed = parse(newValue);
+    if (parsed !== null) {
+      const clamped = Math.min(max, Math.max(min, parsed));
+      onChange(clamped);
+    }
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    setInputValue(format(value));
+  };
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(true);
+    e.target.select();
+  };
+
+  return (
+    <input
+      type="text"
+      value={inputValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      onFocus={handleFocus}
+      style={{ width }}
+      className="font-mono text-white bg-slate-600/50 hover:bg-slate-500/50
+                 border-b border-dashed border-slate-400
+                 focus:border-solid focus:border-primary-400 focus:bg-slate-600
+                 outline-none focus:ring-0 px-1 py-0.5 rounded-sm
+                 text-right cursor-text transition-colors"
+    />
+  );
+}
 
 interface ValuationSummaryProps {
   throughputResult: ValuationResult;
@@ -127,7 +208,17 @@ export function ValuationSummary({
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-400">EBITDA Margin</span>
-              <span className="font-mono text-white">{(financial.ebitdaMargin * 100).toFixed(0)}%</span>
+              <span className="font-mono text-white">
+                <EditableValue
+                  value={financial.ebitdaMargin * 100}
+                  onChange={(val) => onFinancialChange('ebitdaMargin', val / 100)}
+                  min={0}
+                  max={95}
+                  step={5}
+                  suffix="%"
+                  width="4ch"
+                />
+              </span>
             </div>
             <input
               type="range"
@@ -145,7 +236,20 @@ export function ValuationSummary({
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-400">EV/EBITDA Multiple (2030)</span>
-              <span className="font-mono text-white">{evEbitdaSchedule[2030]}x</span>
+              <span className="font-mono text-white">
+                <EditableValue
+                  value={evEbitdaSchedule[2030]}
+                  onChange={(val) => {
+                    onFinancialChange('evEbitdaMultiple', val);
+                    onEvEbitdaScheduleChange(2030, val);
+                  }}
+                  min={5}
+                  max={50}
+                  step={1}
+                  suffix="x"
+                  width="4ch"
+                />
+              </span>
             </div>
             <input
               type="range"
@@ -167,7 +271,17 @@ export function ValuationSummary({
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-400">Current Shares Outstanding</span>
-              <span className="font-mono text-white">{financial.currentShares}M</span>
+              <span className="font-mono text-white">
+                <EditableValue
+                  value={financial.currentShares}
+                  onChange={(val) => onFinancialChange('currentShares', val)}
+                  min={200}
+                  max={500}
+                  step={5}
+                  suffix="M"
+                  width="5ch"
+                />
+              </span>
             </div>
             <input
               type="range"
@@ -185,7 +299,18 @@ export function ValuationSummary({
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-400">Expected Dilution (by 2030)</span>
-              <span className="font-mono text-white">{(financial.expectedDilution * 100).toFixed(1)}%</span>
+              <span className="font-mono text-white">
+                <EditableValue
+                  value={financial.expectedDilution * 100}
+                  onChange={(val) => onFinancialChange('expectedDilution', val / 100)}
+                  min={0}
+                  max={50}
+                  step={0.1}
+                  suffix="%"
+                  width="5ch"
+                  formatDisplay={(val) => `${val.toFixed(1)}%`}
+                />
+              </span>
             </div>
             <input
               type="range"
@@ -217,9 +342,29 @@ export function ValuationSummary({
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-400">Net Debt</span>
               <span className="font-mono text-white">
-                {financial.netDebt >= 1000
-                  ? `$${(financial.netDebt / 1000).toFixed(1)}B`
-                  : `$${financial.netDebt}M`}
+                <EditableValue
+                  value={financial.netDebt}
+                  onChange={(val) => onFinancialChange('netDebt', val)}
+                  min={0}
+                  max={5000}
+                  step={100}
+                  width="6ch"
+                  formatDisplay={(val) => val >= 1000 ? `$${(val / 1000).toFixed(1)}B` : `$${val}M`}
+                  parseInput={(input) => {
+                    const trimmed = input.trim().toUpperCase().replace('$', '');
+                    const billionMatch = trimmed.match(/^([\d.]+)\s*B$/);
+                    if (billionMatch) {
+                      const num = parseFloat(billionMatch[1]);
+                      return isNaN(num) ? null : num * 1000;
+                    }
+                    const millionMatch = trimmed.match(/^([\d.]+)\s*M?$/);
+                    if (millionMatch) {
+                      const num = parseFloat(millionMatch[1]);
+                      return isNaN(num) ? null : num;
+                    }
+                    return null;
+                  }}
+                />
               </span>
             </div>
             <input
