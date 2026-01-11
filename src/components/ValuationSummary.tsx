@@ -9,7 +9,6 @@ function EditableValue({
   onChange,
   min,
   max,
-  step,
   suffix = '',
   prefix = '',
   formatDisplay,
@@ -20,7 +19,7 @@ function EditableValue({
   onChange: (value: number) => void;
   min: number;
   max: number;
-  step: number;
+  step?: number;
   suffix?: string;
   prefix?: string;
   formatDisplay?: (val: number) => string;
