@@ -13,7 +13,6 @@ interface ValuationSummaryProps {
   upside?: number | null;
   onFinancialChange: <K extends keyof FinancialParams>(key: K, value: FinancialParams[K]) => void;
   onEvEbitdaScheduleChange: (year: number, multiple: number) => void;
-  onReset: () => void;
 }
 
 export function ValuationSummary({
@@ -27,7 +26,6 @@ export function ValuationSummary({
   upside,
   onFinancialChange,
   onEvEbitdaScheduleChange,
-  onReset,
 }: ValuationSummaryProps) {
   return (
     <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-xl p-6 text-white">

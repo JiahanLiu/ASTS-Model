@@ -32,7 +32,6 @@ function App() {
     updateAttachmentSchedule,
     updateEvEbitdaSchedule,
     setActiveModel,
-    resetToDefaults,
     exportConfig,
     importConfig,
   } = useValuationModel();
@@ -182,7 +181,6 @@ function App() {
               upside={upside}
               onFinancialChange={updateFinancialParam}
               onEvEbitdaScheduleChange={updateEvEbitdaSchedule}
-              onReset={resetToDefaults}
             />
           </div>
 
