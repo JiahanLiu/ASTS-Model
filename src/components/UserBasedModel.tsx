@@ -55,7 +55,7 @@ export function UserBasedModel({
           label="Attachment Rate"
           value={params.attachmentRate}
           min={0}
-          max={0.20}
+          max={1.0}
           step={0.005}
           onChange={(v) => onParamChange('attachmentRate', v)}
           description="% of subscribers opting into SpaceMobile"
@@ -76,8 +76,8 @@ export function UserBasedModel({
           id="revenueShare"
           label="Revenue Share to ASTS"
           value={params.revenueShare}
-          min={0.40}
-          max={0.60}
+          min={0}
+          max={1.0}
           step={0.01}
           onChange={(v) => onParamChange('revenueShare', v)}
           description="ASTS's share of subscription revenue"

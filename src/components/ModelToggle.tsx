@@ -19,8 +19,8 @@ export function ModelToggle({ activeModel, onChange }: ModelToggleProps) {
           key={model.value}
           onClick={() => onChange(model.value)}
           className={`
-            px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-            flex items-center gap-2
+            px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200
+            flex items-center gap-1 sm:gap-2
             ${activeModel === model.value
               ? 'bg-primary-500 text-white shadow-sm'
               : 'text-slate-600 hover:bg-slate-100'

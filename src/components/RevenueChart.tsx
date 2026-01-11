@@ -29,7 +29,7 @@ export function RevenueChart({ data, activeModel }: RevenueChartProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-display font-semibold text-slate-800">Revenue Projections</h2>
-          <p className="text-sm text-slate-500">Annual net revenue by valuation model (2026-2030)</p>
+          <p className="text-sm text-slate-500">Annual net revenue by valuation model</p>
         </div>
       </div>
 

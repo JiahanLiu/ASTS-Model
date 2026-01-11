@@ -31,47 +31,28 @@ export function ValuationSummary({
 }: ValuationSummaryProps) {
   return (
     <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-xl p-6 text-white">
-      {/* Header with stock ticker style */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg">
-            <span className="font-display font-bold text-lg">ASTS</span>
-          </div>
-          <div>
-            <h2 className="font-display font-bold text-xl">AST SpaceMobile</h2>
-            <p className="text-slate-400 text-sm">Stock Price Valuation</p>
-          </div>
-        </div>
-        <button
-          onClick={onReset}
-          className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors"
-        >
-          Reset to Defaults
-        </button>
-      </div>
-
       {/* Main Stock Price Display */}
       <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-8 mb-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-4">
           {/* Implied Stock Price */}
           <div>
-            <div className="text-lg font-display font-semibold text-slate-300 tracking-wide mb-1">
+            <div className="text-sm sm:text-lg font-display font-semibold text-slate-300 tracking-wide mb-1">
               2030 Implied Stock Price
             </div>
-            <div className="text-5xl font-display font-bold bg-gradient-to-r from-primary-300 via-primary-400 to-accent-400 bg-clip-text text-transparent">
+            <div className="text-3xl sm:text-5xl font-display font-bold text-emerald-400">
               ${activeResult.stockPrice.toFixed(2)}
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="h-16 w-px bg-slate-600"></div>
+          {/* Divider - hidden on mobile */}
+          <div className="hidden sm:block h-16 w-px bg-slate-600"></div>
 
           {/* Market Cap */}
           <div>
-            <div className="text-lg font-display font-semibold text-slate-300 tracking-wide mb-1">
+            <div className="text-sm sm:text-lg font-display font-semibold text-slate-300 tracking-wide mb-1">
               Market Cap
             </div>
-            <div className="text-5xl font-display font-bold bg-gradient-to-r from-accent-300 via-accent-400 to-primary-400 bg-clip-text text-transparent">
+            <div className="text-3xl sm:text-5xl font-display font-bold text-emerald-400">
               ${((activeResult.stockPrice * getFullyDilutedShares(financial)) / 1000).toFixed(1)}B
             </div>
           </div>

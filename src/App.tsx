@@ -68,13 +68,13 @@ function App() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 overflow-x-hidden">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg shadow-primary-500/20">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3 sm:h-16 sm:py-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg shadow-primary-500/20 flex-shrink-0">
                 <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M13 7 9 3 5 7l4 4"/>
                   <path d="m17 11 4 4-4 4-4-4"/>
@@ -83,12 +83,17 @@ function App() {
                   <path d="M9 21a6 6 0 0 0-6-6"/>
                 </svg>
               </div>
-              <div>
-                <h1 className="font-display font-bold text-xl text-slate-800">ASTS Commercial Business Valuation Model</h1>
+              <div className="min-w-0">
+                <h1 className="font-display font-bold text-lg sm:text-xl text-slate-800 truncate sm:whitespace-normal">
+                  <span className="hidden sm:inline">ASTS Commercial Business Valuation Model</span>
+                  <span className="sm:hidden">ASTS Valuation Model</span>
+                </h1>
               </div>
             </div>
 
-            <ModelToggle activeModel={params.activeModel} onChange={setActiveModel} />
+            <div className="flex-shrink-0">
+              <ModelToggle activeModel={params.activeModel} onChange={setActiveModel} />
+            </div>
           </div>
         </div>
       </header>

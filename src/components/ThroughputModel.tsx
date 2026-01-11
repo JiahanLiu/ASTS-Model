@@ -67,7 +67,7 @@ export function ThroughputModel({
           label="Utilization Rate"
           value={params.utilizationRate}
           min={0.10}
-          max={0.60}
+          max={1.0}
           step={0.05}
           onChange={(v) => onParamChange('utilizationRate', v)}
           description="Expected billable data as % of gross capacity"
